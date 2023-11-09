@@ -1,10 +1,12 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-
+import { ConfigModule } from '@nestjs/config';
+const ENV = process.env.NODE_ENV;
 @Module({
-  imports: [],
-  controllers: [AppController],
-  providers: [AppService],
+  imports: [
+    ConfigModule.forRoot({
+      envFilePath:
+        ENV === 'production' ? '.env.production' : '.env.development',
+    }),
+  ],
 })
 export class AppModule {}
