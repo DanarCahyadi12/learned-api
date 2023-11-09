@@ -9,3 +9,41 @@ datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
 }
+
+
+model users {
+  id String @id @default(uuid())
+  name String @db.MediumText
+  email String @db.VarChar(255) @unique
+  password String? @db.MediumText
+  pictureURL String? @db.MediumText
+  bio String? @db.LongText
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+  classroom classroom[]
+  classroomJoined classroom_joined[]
+
+}
+
+model classroom {
+  id  String @id @default(uuid())
+  code String @unique
+  name String @db.VarChar(255)
+  description String? @db.LongText
+  bannerURL String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+  userID String 
+  users users @relation(fields: [userID], references: [id],onDelete: Cascade,onUpdate: Cascade)
+  userJoined classroom_joined[]
+}
+
+model classroom_joined {
+  id String @id @default(uuid())
+  pin Boolean @default(false)
+  userID String
+  classroomID String 
+  users users @relation(fields: [userID], references: [id],onDelete: Cascade,onUpdate: Cascade)
+  classroom classroom @relation(fields: [classroomID], references: [id],onDelete: Cascade,onUpdate: Cascade)
+  joinedAt DateTime @default(now())
+}
