@@ -22,6 +22,7 @@ model users {
   updatedAt DateTime @default(now())
   classroom classroom[]
   classroomJoined classroom_joined[]
+  quizResult quiz_results?
 
 }
 
@@ -36,6 +37,7 @@ model classroom {
   userID String 
   users users @relation(fields: [userID], references: [id],onDelete: Cascade,onUpdate: Cascade)
   userJoined classroom_joined[]
+  quiz quiz[]
 }
 
 model classroom_joined {
@@ -46,4 +48,70 @@ model classroom_joined {
   users users @relation(fields: [userID], references: [id],onDelete: Cascade,onUpdate: Cascade)
   classroom classroom @relation(fields: [classroomID], references: [id],onDelete: Cascade,onUpdate: Cascade)
   joinedAt DateTime @default(now())
+}
+
+model quiz {
+  id String @id @default(uuid())
+  title String
+  description String?
+  dateOpen DateTime @default(now())
+  dateClose DateTime?
+  passGrade Int?
+  timeLimits String?
+  randomQuestion Boolean @default(false)
+  randomAnswer Boolean @default(false)
+  totalQuestion Int
+  allowSeeGrade Boolean @default(true)
+  allowSeeResult Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+  classroom classroom @relation(fields: [classID], references: [id],onDelete: Cascade, onUpdate: Cascade)
+  classID String
+  quizQuestions quiz_questions[]
+  quizResult quiz_results?
+}
+
+
+model quiz_questions {
+  id String @id @default(uuid())
+  number Int
+  question String
+  questionImageURL String?
+  typeAnswer String
+  answerA String
+  answerB String
+  answerC String
+  correctAnswer String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+  quizID String
+  quiz quiz  @relation(fields: [quizID], references: [id], onDelete:  Cascade, onUpdate: Cascade)
+  quizResults quiz_question_results[]
+
+  
+
+}
+
+model quiz_results {
+  id String @id @default(uuid())
+  quiz quiz? @relation(fields: [quizID], references: [id], onDelete: SetNull, onUpdate: Cascade) 
+  users users @relation(fields: [userID], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  quizID String? @unique
+  userID String @unique
+  grade Int
+  gradingPass Boolean
+  attemptedAt DateTime
+  submitedAt DateTime
+  workDuration String
+  quizQuestion quiz_question_results[]
+
+}
+model quiz_question_results {
+  id String @id @default(uuid())
+  quizResults quiz_results @relation(fields: [quizResultID], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  quizQuestions quiz_questions? @relation(fields: [questionID], references: [id], onDelete: SetNull )
+  quizResultID String 
+  questionID String?
+  userAnswer String?
+  isCorrect Boolean
 }
