@@ -19,7 +19,6 @@ export class SignupService {
         ...dto,
         password: await this.hashPassword(dto.password),
       };
-      console.log('OAY: ', payload);
       const user: UserEntity = await this.userService.createUser(payload);
 
       return Promise.resolve({

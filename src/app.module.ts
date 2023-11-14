@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module';
 import { UserModule } from './user/user.module';
 import { SignupModule } from './signup/signup.module';
+import { AuthModule } from './auth/auth.module';
 const ENV = process.env.NODE_ENV;
 @Module({
   imports: [
@@ -14,6 +15,7 @@ const ENV = process.env.NODE_ENV;
     PrismaModule,
     UserModule,
     SignupModule,
+    AuthModule,
   ],
 })
 export class AppModule {}

@@ -2,11 +2,9 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { createUserDto } from './DTOs/index';
 import { UserEntity } from './entity';
-import * as bcrypt from 'bcrypt';
 @Injectable()
 export class UserService {
   constructor(private readonly prismaService: PrismaService) {}
-  private password: string;
   async createUser(dto: createUserDto): Promise<UserEntity> {
     try {
       const user: UserEntity = await this.prismaService.users.create({
@@ -20,10 +18,6 @@ export class UserService {
           description: 'Something bad happened while creating a user',
         });
     }
-  }
-  private async hashPassword(password: string) {
-    const salt = await bcrypt.genSalt();
-    return await bcrypt.hash(password, salt);
   }
 
   async findOneByEmail(email: string) {
