@@ -5,7 +5,7 @@ export interface UserEntity {
   password: string | null;
   pictureURL: string | null;
   bio: string | null;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date;
+  updatedAt: Date;
   refreshToken: string | null;
 }

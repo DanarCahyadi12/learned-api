@@ -9,18 +9,10 @@ export class UserService {
   private password: string;
   async createUser(dto: createUserDto): Promise<UserEntity> {
     try {
-      if (dto?.password) {
-        this.password = await this.hashPassword(dto.password);
-      }
-      const user = await this.prismaService.users.create({
-        data: { ...dto, password: this.password },
+      const user: UserEntity = await this.prismaService.users.create({
+        data: dto,
       });
-      const userEntity: UserEntity = {
-        ...user,
-        createdAt: user.createdAt.toISOString(),
-        updatedAt: user.updatedAt.toISOString(),
-      };
-      return Promise.resolve(userEntity);
+      return Promise.resolve(user);
     } catch (error) {
       if (error)
         throw new InternalServerErrorException('Something bad happened', {
@@ -41,5 +33,28 @@ export class UserService {
       },
     });
     return user;
+  }
+
+  async updateRefreshTokenUser(
+    id: string,
+    refreshToken: string,
+  ): Promise<UserEntity> {
+    try {
+      return await this.prismaService.users.update({
+        where: {
+          id: id,
+        },
+        data: {
+          refreshToken: refreshToken,
+        },
+      });
+    } catch (error) {
+      if (error)
+        throw new InternalServerErrorException('Something bad happened', {
+          cause: error,
+          description:
+            'Something bad happened while updating refresh token  user',
+        });
+    }
   }
 }

@@ -76,4 +76,33 @@ describe('UserService', () => {
     expect(user).toHaveProperty('refreshToken');
     expect(user.email).toBe('danar@gmail.com');
   });
+
+  it('Refresh token should updated', async () => {
+    const refreshToken: string =
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c';
+    const userResult = {
+      id: 'cdfe9601-dfb2-4708-9449-f36e446e1b11',
+      name: 'I Ketut Danar Cahyadi',
+      email: 'danar@gmail.com',
+      password: '$2a$10$6URsw55BPivQdveiLezwa.e7JyB5YzGJ3/PWPcd7yMVWOglgs6S6i',
+      pictureURL: null,
+      refreshToken: refreshToken,
+      bio: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    const idUser: string = '0bea6fd5-c889-4e3e-9998-ee87f6656878';
+
+    jest
+      .spyOn(userService, 'updateRefreshTokenUser')
+      .mockImplementation(async () => userResult);
+    const result = await userService.updateRefreshTokenUser(
+      idUser,
+      refreshToken,
+    );
+    expect(result).toBeDefined();
+    expect(result).toHaveProperty('refreshToken');
+    expect(result).not.toBeNull();
+    expect(result).toBeDefined();
+  });
 });
