@@ -20,6 +20,7 @@ model users {
   bio String? @db.LongText
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
+  refreshToken String? @db.MediumText 
   classroom classroom[]
   classroomJoined classroom_participants[]
   quizResult quiz_results[]
