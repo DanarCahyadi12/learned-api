@@ -15,11 +15,12 @@ export class SignupService {
         throw new BadRequestException('Password must be at least 8 characters');
       if (userExits) throw new BadRequestException('Email already registered');
 
-      dto = {
+      const payload = {
         ...dto,
         password: await this.hashPassword(dto.password),
       };
-      const user: UserEntity = await this.userService.createUser(dto);
+      console.log('OAY: ', payload);
+      const user: UserEntity = await this.userService.createUser(payload);
 
       return Promise.resolve({
         status: 'success',
@@ -29,12 +30,11 @@ export class SignupService {
         },
       });
     } catch (error) {
-      console.log('ERROR: ', error);
       if (error) throw error;
     }
   }
   private async hashPassword(password: string) {
-    const SALT = await bcrypt.genSalt();
+    const SALT = await bcrypt.genSalt(10);
     return await bcrypt.hash(password, SALT);
   }
 }
