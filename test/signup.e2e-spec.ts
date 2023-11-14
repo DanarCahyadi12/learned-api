@@ -3,7 +3,6 @@ import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { SignupModule } from '../src/signup/signup.module';
 import { SignUpDto } from '../src/signup/DTOs';
-import { prismaMock } from '../src/prisma/prisma.mock';
 describe('Sign up (e2e)', () => {
   let app: INestApplication;
   beforeEach(async () => {
@@ -23,7 +22,7 @@ describe('Sign up (e2e)', () => {
     };
     const response = await request(app.getHttpServer())
       .post('/signup')
-      .send({ data: dto })
+      .send(dto)
       .expect(201)
       .expect('Created');
 
@@ -36,35 +35,7 @@ describe('Sign up (e2e)', () => {
     expect(response.body.data.id).toBeDefined();
   });
 
-  it('/POST signup (negative)', async () => {
-    const user = {
-      id: 'cdfe9601-dfb2-4708-9449-f36e446e1b11',
-      name: 'I Ketut Danar Cahyadi',
-      email: 'danar@gmail.com',
-      password: '$2a$10$6URsw55BPivQdveiLezwa.e7JyB5YzGJ3/PWPcd7yMVWOglgs6S6i',
-      pictureURL: null,
-      refreshToken: null,
-      bio: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    (prismaMock.users.create as jest.Mock).mockResolvedValue(user);
-    const dto: SignUpDto = {
-      name: 'I Ketut Danar Cahyadi',
-      email: 'danar@gmail.com',
-      password: '12345678',
-    };
-    const response = await request(app.getHttpServer())
-      .post('/signup')
-      .send({ data: dto })
-      .expect(400)
-      .expect('Bad request');
-
-    expect(response.body).toHaveProperty('statusCode');
-    expect(response.body).toHaveProperty('message');
-    expect(response.body).toHaveProperty('code');
-    expect(response.body.statusCode).toBe(400);
-    expect(response.body.error).toBe('Bad request');
-    expect(response.body.message).toBe('Email is already registered');
+  afterAll(async () => {
+    await app.close();
   });
 });

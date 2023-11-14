@@ -6,5 +6,8 @@
   "testRegex": ".e2e-spec.ts$",
   "transform": {
     "^.+\\.(t|j)s$": "ts-jest"
-  }
+  },
+  "setupFilesAfterEnv": [
+    "C:/Users/Danar Cahyadi/OneDrive/Desktop/learned-api/src/prisma/singleton.ts"
+  ]
 }

@@ -29,6 +29,7 @@ export class SignupService {
         },
       });
     } catch (error) {
+      console.log('ERROR: ', error);
       if (error) throw error;
     }
   }
