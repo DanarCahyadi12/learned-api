@@ -13,12 +13,13 @@ import { AuthService } from './auth.service';
 import { AuthDto } from './DTOs';
 import { Response } from 'express';
 import { RefreshTokenGuard } from './guards';
-import { Cookies } from './decorators';
+import { Cookies, SkipAuth } from './decorators';
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('signin')
+  @SkipAuth()
   @HttpCode(HttpStatus.OK)
   async signIn(@Body() dto: AuthDto, @Res() res: Response) {
     const response = await this.authService.signIn(dto, res);
@@ -26,6 +27,7 @@ export class AuthController {
   }
 
   @Get('token')
+  @SkipAuth()
   @UseGuards(RefreshTokenGuard)
   async getRefreshToken(
     @Request() req,
