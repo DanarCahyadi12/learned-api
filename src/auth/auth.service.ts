@@ -1,10 +1,15 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../user/user.service';
 import { AuthDto } from './DTOs';
 import { Response } from 'express';
 import { UserEntity } from '../user/entity';
-import { SignInResponse } from './interfaces';
+import { AuthResponse } from './interfaces';
 import * as bcrypt from 'bcrypt';
 @Injectable()
 export class AuthService {
@@ -13,7 +18,7 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async signIn(dto: AuthDto, res: Response): Promise<SignInResponse> {
+  async signIn(dto: AuthDto, res: Response): Promise<AuthResponse> {
     if (!dto.email) throw new BadRequestException('Email is required');
     if (!dto.password) throw new BadRequestException('Password is required');
 
@@ -31,7 +36,7 @@ export class AuthService {
       secure: process.env.NODE_ENV === 'production' ? true : false,
     });
 
-    const response: SignInResponse = {
+    const response: AuthResponse = {
       status: 'success',
       message: 'Sign in successfully',
       data: {
@@ -61,5 +66,33 @@ export class AuthService {
       { sub },
       { expiresIn: '3d', secret: process.env.REFRESH_TOKEN_SECRET },
     );
+  }
+
+  async getRefreshToken(
+    sub: string,
+    refreshToken: string,
+  ): Promise<AuthResponse> {
+    const user: UserEntity = await this.userService.findOneById(sub);
+    if (!user) throw new NotFoundException('User not found');
+
+    const isValidRefreshToken = await this.validateRefreshToken(
+      refreshToken,
+      user.refreshToken,
+    );
+    if (!isValidRefreshToken) throw new UnauthorizedException();
+    const newAccessToken: string = await this.generateAccessToken(user.id);
+    return {
+      status: 'success',
+      message: 'Get access token successfullt',
+      data: {
+        accessToken: newAccessToken,
+      },
+    };
+  }
+
+  async validateRefreshToken(refreshToken: string, hashedRefreshToken: string) {
+    return (await bcrypt.compare(refreshToken, hashedRefreshToken))
+      ? true
+      : false;
   }
 }

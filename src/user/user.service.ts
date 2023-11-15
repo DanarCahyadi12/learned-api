@@ -12,21 +12,29 @@ export class UserService {
       });
       return Promise.resolve(user);
     } catch (error) {
-      if (error)
-        throw new InternalServerErrorException('Something bad happened', {
-          cause: error,
-          description: 'Something bad happened while creating a user',
-        });
+      console.log(error);
+      throw new InternalServerErrorException('Something bad happened', {
+        cause: error,
+        description: 'Something bad happened while creating a user',
+      });
     }
   }
 
   async findOneByEmail(email: string) {
-    const user = await this.prismaService.users.findUnique({
-      where: {
-        email: email,
-      },
-    });
-    return user;
+    try {
+      const user = await this.prismaService.users.findUnique({
+        where: {
+          email: email,
+        },
+      });
+      return user;
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException('Something bad happened', {
+        cause: error,
+        description: 'Something bad happened while creating a user',
+      });
+    }
   }
 
   async updateRefreshTokenUser(
@@ -43,11 +51,30 @@ export class UserService {
         },
       });
     } catch (error) {
-      if (error)
-        throw new InternalServerErrorException('Something bad happened', {
+      console.log(error);
+      throw new InternalServerErrorException('Something bad happened', {
+        cause: error,
+        description: error,
+      });
+    }
+  }
+
+  async findOneById(id: string): Promise<UserEntity> {
+    try {
+      return await this.prismaService.users.findUnique({
+        where: {
+          id: id,
+        },
+      });
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException(
+        'Something bad happened while find user by id',
+        {
           cause: error,
           description: error,
-        });
+        },
+      );
     }
   }
 }

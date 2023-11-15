@@ -105,4 +105,47 @@ describe('UserService', () => {
     expect(result).not.toBeNull();
     expect(result).toBeDefined();
   });
+
+  it('Should return a user ', async () => {
+    const userResult = {
+      id: 'cdfe9601-dfb2-4708-9449-f36e446e1b11',
+      name: 'I Ketut Danar Cahyadi',
+      email: 'danar@gmail.com',
+      password: '$2a$10$6URsw55BPivQdveiLezwa.e7JyB5YzGJ3/PWPcd7yMVWOglgs6S6i',
+      pictureURL: null,
+      refreshToken: null,
+      bio: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    jest
+      .spyOn(userService, 'findOneById')
+      .mockImplementation(async () => userResult);
+    const user = await userService.findOneById(
+      'cdfe9601-dfb2-4708-9449-f36e446e1b11',
+    );
+    expect(user).toBeDefined();
+    expect(user).toHaveProperty('id');
+    expect(user).toHaveProperty('name');
+    expect(user).toHaveProperty('email');
+    expect(user).toHaveProperty('password');
+    expect(user).toHaveProperty('pictureURL');
+    expect(user).toHaveProperty('refreshToken');
+    expect(user).toHaveProperty('bio');
+    expect(user).toHaveProperty('createdAt');
+    expect(user).toHaveProperty('updatedAt');
+    expect(user.id).toBe('cdfe9601-dfb2-4708-9449-f36e446e1b11');
+    expect(user.name).toBe('I Ketut Danar Cahyadi');
+    expect(user.email).toBe('danar@gmail.com');
+  });
+  it('Should return a null ', async () => {
+    const userResult = null;
+
+    jest
+      .spyOn(userService, 'findOneById')
+      .mockImplementation(async () => userResult);
+    const user = await userService.findOneById('idsalah');
+    expect(user).toBeNull();
+  });
 });

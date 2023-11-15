@@ -51,4 +51,19 @@ describe('AuthService', () => {
     jest.spyOn(service, 'validate').mockImplementation(async () => false);
     expect(await service.validate(dto)).toBeFalsy();
   });
+
+  it('Should return true when compare valid refresh token', async () => {
+    const rf: string =
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0MWMzZmI1Yy0yMjBlLTRhZTUtOTQ4Yy0zY2QxYWI3ZTg0YjYiLCJpYXQiOjE3MDAwMjM3NzMsImV4cCI6MTcwMDI4Mjk3M30.4Of7FH6l7e-wJhKr5z3CdiKwmMf3IvdAZPrG2TC5ln0';
+    const hashedRf: string =
+      '$2b$10$gmRdcNHeBDfYHNEkyR7iAul1sVSzT5gfi4j1SRGkzAn73d.pFqWyu';
+    expect(await service.validateRefreshToken(rf, hashedRf)).toBeTruthy();
+  });
+  it('Should return false when compare invalid refresh token', async () => {
+    const rf: string =
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJasa9.eyJzdWIiOiI0MWMzZmI1Yy0yMjBlLTRhZTUtOTQ4Yy0zY2QxYWI3ZTg0YjYiLCJpYXQiOjE3MDAwMjM3NzMsImV4cCI6MTcwMDI4Mjk3M30.4Of7FH6l7e-wJhKr5z3CdiKwmMf3IvdAZPrG2TC5ln0';
+    const hashedRf: string =
+      '$2b$10$gmRdcNHeBDfYHNEkyR7iAul1sVSzT5gfi4j1SRGkzAn73d.pFqWyu';
+    expect(await service.validateRefreshToken(rf, hashedRf)).toBeFalsy();
+  });
 });
