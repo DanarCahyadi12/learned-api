@@ -95,4 +95,9 @@ export class AuthService {
       ? true
       : false;
   }
+
+  async signOut(id: string, res: Response) {
+    await this.userService.updateRefreshTokenUser(id, null);
+    res.clearCookie('token');
+  }
 }
