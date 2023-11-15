@@ -11,8 +11,10 @@ import { Response } from 'express';
 import { UserEntity } from '../user/entity';
 import { AuthResponse } from './interfaces';
 import * as bcrypt from 'bcrypt';
+import { GooglePayloadDto } from './DTOs/google.dto';
 @Injectable()
 export class AuthService {
+  private user: UserEntity;
   constructor(
     private readonly userService: UserService,
     private jwtService: JwtService,
@@ -99,5 +101,32 @@ export class AuthService {
   async signOut(id: string, res: Response) {
     await this.userService.updateRefreshTokenUser(id, null);
     res.clearCookie('token');
+  }
+
+  async googleRedirect(
+    payload: GooglePayloadDto,
+    res: Response,
+  ): Promise<AuthResponse> {
+    this.user = await this.userService.findOneByEmail(payload.email);
+    if (!this.user) this.user = await this.userService.createUser(payload);
+    const refreshToken: string = await this.generateRefreshToken(this.user.id);
+    const accessToken: string = await this.generateAccessToken(this.user.id);
+    const hashRefreshToken: string = await bcrypt.hash(refreshToken, 10);
+    await this.userService.updateRefreshTokenUser(
+      this.user.id,
+      hashRefreshToken,
+    );
+    res.cookie('token', refreshToken, {
+      maxAge: 3 * 24 * 60 * 60,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production' ? true : false,
+    });
+    return {
+      status: 'success',
+      message: 'Sign in successfully',
+      data: {
+        accessToken,
+      },
+    };
   }
 }

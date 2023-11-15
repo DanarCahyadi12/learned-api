@@ -1,3 +1,3 @@
 export * from './access-token.strategy';
 export * from './refresh-token.strategy';
-// export * from './google-auth.strategy';
+export * from './google-auth.strategy';
