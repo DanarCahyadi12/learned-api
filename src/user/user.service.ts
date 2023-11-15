@@ -46,8 +46,7 @@ export class UserService {
       if (error)
         throw new InternalServerErrorException('Something bad happened', {
           cause: error,
-          description:
-            'Something bad happened while updating refresh token  user',
+          description: error,
         });
     }
   }
