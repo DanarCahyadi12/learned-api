@@ -15,9 +15,13 @@ import { Response } from 'express';
 import { RefreshTokenGuard } from './guards';
 import { Cookies, SkipAuth } from './decorators';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
+import { MailService } from 'src/mail/mail.service';
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private mailService: MailService,
+  ) {}
   @SkipAuth()
   @Post('signin')
   @HttpCode(HttpStatus.OK)
@@ -54,5 +58,11 @@ export class AuthController {
   async googleRedirect(@Request() req, @Res() res) {
     const response = await this.authService.googleRedirect(req.user, res);
     res.json(response);
+  }
+
+  @SkipAuth()
+  @Get('reset-password')
+  async resetPaswordl() {
+    this.mailService.sendEmail();
   }
 }
