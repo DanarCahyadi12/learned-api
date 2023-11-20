@@ -1,6 +1,7 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { GoogleOauthService } from 'src/google-oauth/google-oauth.service';
 import * as nodemailer from 'nodemailer';
+import { SendMailDto } from './DTOs/send-mail.dto';
 @Injectable()
 export class MailService {
   constructor(private googleOAuthClient: GoogleOauthService) {}
@@ -18,16 +19,16 @@ export class MailService {
       },
     });
   }
-  async sendEmail() {
+  async sendEmail(dto: SendMailDto) {
     try {
       const data: any = await this.googleOAuthClient.getAccessToken();
       const transport = this.createTransport(data.token);
       transport.sendMail({
         from: 'official.learned@gmail.com <official.learned@gmail.com>',
-        to: 'danarcahyadi21@gmail.com',
-        subject: 'KONTOL',
-        text: 'KONTOL BAPAK KAU',
-        html: '<h1>KONTOL GEDE MEMEK TEMBEM</h1>',
+        to: dto.to,
+        subject: dto.subject,
+        text: dto.html,
+        html: dto.html,
       });
     } catch (error) {
       console.log(error);
