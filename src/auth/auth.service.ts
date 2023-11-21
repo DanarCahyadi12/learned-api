@@ -6,32 +6,64 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../user/user.service';
-import { AuthDto } from './DTOs';
-import { Response } from 'express';
+import { AuthDto, GooglePayloadDto } from './DTOs';
+import { Request, Response } from 'express';
 import { UserEntity } from '../user/entity';
 import { AuthResponse } from './interfaces';
 import * as bcrypt from 'bcrypt';
-import { GooglePayloadDto } from './DTOs/google.dto';
+import { MailService } from 'src/mail/mail.service';
+import { SetPasswordDto } from './DTOs';
+import * as crypto from 'crypto';
 @Injectable()
 export class AuthService {
   private user: UserEntity;
   constructor(
     private readonly userService: UserService,
     private jwtService: JwtService,
+    private mailService: MailService,
   ) {}
 
-  async signIn(dto: AuthDto, res: Response): Promise<AuthResponse> {
+  async signIn(
+    dto: AuthDto,
+    req: Request,
+    res: Response,
+  ): Promise<AuthResponse> {
     if (!dto.email) throw new BadRequestException('Email is required');
     if (!dto.password) throw new BadRequestException('Password is required');
 
-    const id: boolean | string = await this.validate(dto);
-    if (!id) throw new BadRequestException('Email or password is incorrect');
+    const user: boolean | UserEntity = await this.validate(dto);
+    if (!user) throw new BadRequestException('Email or password is incorrect');
+    if (!user.password) {
+      const token: string = crypto.randomBytes(32).toString('hex');
+      const url: string = `${req.protocol}://${req.hostname}:${process.env.SERVER_PORT}/set-password?token=${token}`;
+      const mailDto: SetPasswordDto = {
+        id: user.id,
+        to: user.email,
+        token: token,
+        expires: Date.now() + 60 * 60 * 1000,
+        subject: `Dear ${user.name}.`,
+        html: 'set-password',
+        variable: {
+          url,
+          name: user.name,
+          description: `We need to set your password account before you're logged in. This link will expires in 1 hours from now`,
+        },
+      };
 
-    const accessToken: string = await this.generateAccessToken(id);
-    const refreshToken: string = await this.generateRefreshToken(id);
+      await this.sendEmailForSetPassword(mailDto);
+      const response: AuthResponse = {
+        status: 'accepted',
+        message: `We sent email to ${user.email[0]}******@gmail.com with a link to set your password account`,
+        code: 202,
+      };
+
+      return Promise.resolve(response);
+    }
+    const accessToken: string = await this.generateAccessToken(user.id);
+    const refreshToken: string = await this.generateRefreshToken(user.id);
     const hashedRefreshToken: string = await bcrypt.hash(refreshToken, 10);
 
-    await this.userService.updateRefreshTokenUser(id, hashedRefreshToken);
+    await this.userService.updateRefreshTokenUser(user.id, hashedRefreshToken);
     res.cookie('token', refreshToken, {
       maxAge: 3 * 24 * 60 * 60,
       httpOnly: true,
@@ -41,6 +73,7 @@ export class AuthService {
     const response: AuthResponse = {
       status: 'success',
       message: 'Sign in successfully',
+      code: 200,
       data: {
         accessToken,
       },
@@ -48,13 +81,14 @@ export class AuthService {
     return Promise.resolve(response);
   }
 
-  async validate(dto: AuthDto): Promise<false | string> {
+  async validate(dto: AuthDto): Promise<false | UserEntity> {
     const user: UserEntity = await this.userService.findOneByEmail(dto.email);
     if (!user) return false;
     const { password } = user;
+    if (!password) return user;
     const matchPassword = await bcrypt.compare(dto.password, password);
     if (!matchPassword) return false;
-    return user.id;
+    return user;
   }
 
   async generateAccessToken(sub: string): Promise<string> {
@@ -128,5 +162,14 @@ export class AuthService {
         accessToken,
       },
     };
+  }
+
+  async sendEmailForSetPassword(dto: SetPasswordDto) {
+    await this.userService.updateTokenPasswordAndExpires(
+      dto.id,
+      dto.token,
+      dto.expires,
+    );
+    await this.mailService.sendEmail(dto);
   }
 }

@@ -1,7 +1,10 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { GoogleOauthService } from 'src/google-oauth/google-oauth.service';
 import * as nodemailer from 'nodemailer';
-import { SendMailDto } from './DTOs/send-mail.dto';
+import { SendMailDto } from './DTOs';
+import { join } from 'path';
+import { readFileSync } from 'fs';
+import * as ejs from 'ejs';
 @Injectable()
 export class MailService {
   constructor(private googleOAuthClient: GoogleOauthService) {}
@@ -27,8 +30,8 @@ export class MailService {
         from: 'official.learned@gmail.com <official.learned@gmail.com>',
         to: dto.to,
         subject: dto.subject,
-        text: dto.html,
-        html: dto.html,
+        text: dto.text,
+        html: this.getTemplate(dto.html, dto.variable),
       });
     } catch (error) {
       console.log(error);
@@ -40,5 +43,15 @@ export class MailService {
         },
       );
     }
+  }
+
+  getTemplate(filename: string, variable: any): string {
+    const templatePath = join(
+      __dirname,
+      'templates',
+      `${filename}.template.ejs`,
+    );
+    const templateContent = readFileSync(templatePath, 'utf-8');
+    return ejs.render(templateContent, variable);
   }
 }

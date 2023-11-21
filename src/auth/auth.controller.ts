@@ -1,8 +1,6 @@
 import {
   Body,
   Controller,
-  HttpCode,
-  HttpStatus,
   Post,
   Res,
   Get,
@@ -15,19 +13,27 @@ import { Response } from 'express';
 import { RefreshTokenGuard } from './guards';
 import { Cookies, SkipAuth } from './decorators';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
-import { MailService } from 'src/mail/mail.service';
+
 @Controller('auth')
 export class AuthController {
-  constructor(
-    private readonly authService: AuthService,
-    private mailService: MailService,
-  ) {}
+  constructor(private readonly authService: AuthService) {}
   @SkipAuth()
   @Post('signin')
-  @HttpCode(HttpStatus.OK)
-  async signIn(@Body() dto: AuthDto, @Res() res: Response) {
-    const response = await this.authService.signIn(dto, res);
-    res.json(response);
+  async signIn(@Body() dto: AuthDto, @Request() req, @Res() res: Response) {
+    const response = await this.authService.signIn(dto, req, res);
+
+    if (response.code === 202) {
+      res.status(response.code).json({
+        status: response.status,
+        messsage: response.message,
+      });
+    } else {
+      res.status(response.code).json({
+        status: response.status,
+        messsage: response.message,
+        data: response.data,
+      });
+    }
   }
 
   @SkipAuth()
@@ -58,11 +64,5 @@ export class AuthController {
   async googleRedirect(@Request() req, @Res() res) {
     const response = await this.authService.googleRedirect(req.user, res);
     res.json(response);
-  }
-
-  @SkipAuth()
-  @Get('reset-password')
-  async resetPaswordl() {
-    this.mailService.sendEmail();
   }
 }

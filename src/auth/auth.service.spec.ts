@@ -3,6 +3,8 @@ import { UserService } from '../user/user.service';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuthDto } from './DTOs';
+import { MailService } from 'src/mail/mail.service';
+import { GoogleOauthService } from 'src/google-oauth/google-oauth.service';
 describe('AuthService', () => {
   let service: AuthService;
 
@@ -10,6 +12,7 @@ describe('AuthService', () => {
     service = new AuthService(
       new UserService(new PrismaService()),
       new JwtService(),
+      new MailService(new GoogleOauthService()),
     );
   });
 
@@ -30,9 +33,20 @@ describe('AuthService', () => {
       email: 'danar@gmail.com',
       password: '12345678',
     };
-    jest
-      .spyOn(service, 'validate')
-      .mockImplementation(async () => '0bea6fd5-c889-4e3e-9998-ee87f6656878');
+    const user = {
+      id: 'cdfe9601-dfb2-4708-9449-f36e446e1b11',
+      name: 'I Ketut Danar Cahyadi',
+      email: 'danar@gmail.com',
+      password: '$2a$10$6URsw55BPivQdveiLezwa.e7JyB5YzGJ3/PWPcd7yMVWOglgs6S6i',
+      pictureURL: null,
+      refreshToken: null,
+      tokenPassword: null,
+      tokenPasswordExpires: null,
+      bio: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    jest.spyOn(service, 'validate').mockImplementation(async () => user);
     expect(await service.validate(dto)).toBeTruthy();
   });
   it('Should return a false when email incorrect', async () => {

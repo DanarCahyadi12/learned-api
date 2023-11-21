@@ -21,8 +21,8 @@ model users {
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
   refreshToken String? @db.MediumText
-  forgotPasswordToken String? @db.MediumText
-  forgotPasswordExpires String? @db.MediumText
+  tokenPassword String? @db.VarChar(255) @unique
+  tokenPasswordExpires BigInt?
   classroom classroom[]
   classroomJoined classroom_participants[]
   quizResult quiz_results[]

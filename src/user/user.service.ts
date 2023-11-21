@@ -2,6 +2,7 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { createUserDto } from './DTOs/index';
 import { UserEntity } from './entity';
+
 @Injectable()
 export class UserService {
   constructor(private readonly prismaService: PrismaService) {}
@@ -74,6 +75,49 @@ export class UserService {
           cause: error,
           description: error,
         },
+      );
+    }
+  }
+
+  async findOneByTokenResetPassword(token: string): Promise<UserEntity> {
+    try {
+      return await this.prismaService.users.findUnique({
+        where: {
+          tokenPassword: token,
+        },
+      });
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException(
+        'Error while find user by token password',
+        {
+          cause: error,
+          description: error,
+        },
+      );
+    }
+  }
+
+  async updateTokenPasswordAndExpires(
+    id: string,
+    token: string,
+    expires: number,
+  ) {
+    try {
+      return await this.prismaService.users.update({
+        where: {
+          id: id,
+        },
+        data: {
+          tokenPassword: token,
+          tokenPasswordExpires: expires,
+        },
+      });
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException(
+        'Error while updating token password',
+        { cause: error, description: error },
       );
     }
   }

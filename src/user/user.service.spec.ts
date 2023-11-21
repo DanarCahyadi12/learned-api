@@ -3,7 +3,7 @@ import { createUserDto } from './DTOs';
 import { PrismaMock, prismaMock } from '../prisma/prisma.mock';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaModule } from '../prisma/prisma.module';
-
+import { UserEntity } from './entity';
 describe('UserService', () => {
   let userService: UserService;
   beforeEach(async () => {
@@ -33,6 +33,8 @@ describe('UserService', () => {
       email: 'danar@gmail.com',
       password: '$2a$10$6URsw55BPivQdveiLezwa.e7JyB5YzGJ3/PWPcd7yMVWOglgs6S6i',
       pictureURL: null,
+      tokenPassword: null,
+      tokenPasswordExpires: null,
       refreshToken: null,
       bio: null,
       createdAt: new Date(),
@@ -57,6 +59,8 @@ describe('UserService', () => {
       password: '$2a$10$6URsw55BPivQdveiLezwa.e7JyB5YzGJ3/PWPcd7yMVWOglgs6S6i',
       pictureURL: null,
       refreshToken: null,
+      tokenPassword: null,
+      tokenPasswordExpires: null,
       bio: null,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -86,7 +90,9 @@ describe('UserService', () => {
       email: 'danar@gmail.com',
       password: '$2a$10$6URsw55BPivQdveiLezwa.e7JyB5YzGJ3/PWPcd7yMVWOglgs6S6i',
       pictureURL: null,
-      refreshToken: refreshToken,
+      refreshToken: null,
+      tokenPassword: null,
+      tokenPasswordExpires: null,
       bio: null,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -114,6 +120,8 @@ describe('UserService', () => {
       password: '$2a$10$6URsw55BPivQdveiLezwa.e7JyB5YzGJ3/PWPcd7yMVWOglgs6S6i',
       pictureURL: null,
       refreshToken: null,
+      tokenPassword: null,
+      tokenPasswordExpires: null,
       bio: null,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -147,5 +155,59 @@ describe('UserService', () => {
       .mockImplementation(async () => userResult);
     const user = await userService.findOneById('idsalah');
     expect(user).toBeNull();
+  });
+
+  it('Should return a users entity with token password and expires after udpated', async () => {
+    const userID: string = '41c3fb5c-220e-4ae5-948c-3cd1ab7e84b6';
+    const passwordToken: string =
+      'ed40403fbb606a4cd03f91035db5eb9610de62fb8cd0270f036d1e1250d002dc';
+    const expires: number = Date.now() + 60 * 60 * 1000;
+    const mockUsers: UserEntity = {
+      id: 'cdfe9601-dfb2-4708-9449-f36e446e1b11',
+      name: 'I Ketut Danar Cahyadi',
+      email: 'danar@gmail.com',
+      password: '$2a$10$6URsw55BPivQdveiLezwa.e7JyB5YzGJ3/PWPcd7yMVWOglgs6S6i',
+      pictureURL: null,
+      refreshToken: null,
+      tokenPassword: passwordToken,
+      tokenPasswordExpires: expires,
+      bio: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    (prismaMock.users.update as jest.Mock).mockResolvedValue(mockUsers);
+
+    const usersUpdated: UserEntity =
+      await userService.updateTokenPasswordAndExpires(
+        userID,
+        passwordToken,
+        expires,
+      );
+    expect(usersUpdated).toBeDefined();
+    expect(usersUpdated).toBe(mockUsers);
+  });
+
+  it('Should return a user entity when find by password token', async () => {
+    const passwordToken: string =
+      'ed40403fbb606a4cd03f91035db5eb9610de62fb8cd0270f036d1e1250d002dc';
+    const expires: number = Date.now() + 60 * 60 * 1000;
+    const mockUsers: UserEntity = {
+      id: 'cdfe9601-dfb2-4708-9449-f36e446e1b11',
+      name: 'I Ketut Danar Cahyadi',
+      email: 'danar@gmail.com',
+      password: '$2a$10$6URsw55BPivQdveiLezwa.e7JyB5YzGJ3/PWPcd7yMVWOglgs6S6i',
+      pictureURL: null,
+      refreshToken: null,
+      tokenPassword: passwordToken,
+      tokenPasswordExpires: expires,
+      bio: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    (prismaMock.users.findUnique as jest.Mock).mockResolvedValue(mockUsers);
+    const users: UserEntity =
+      await userService.findOneByTokenResetPassword(passwordToken);
+    expect(users).toBeDefined();
+    expect(users).toBe(users);
   });
 });
