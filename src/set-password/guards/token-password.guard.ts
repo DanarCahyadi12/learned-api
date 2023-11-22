@@ -5,7 +5,7 @@ import {
   BadRequestException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { UserService } from 'src/user/user.service';
+import { UserService } from '../../user/user.service';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -15,6 +15,8 @@ export class TokenPasswordGuard implements CanActivate {
     const req = context.switchToHttp().getRequest();
     const token = req.query?.['token'];
     const userID = req.query?.['userid'];
+    console.log(token);
+    console.log(userID);
     if (!token && !userID)
       throw new BadRequestException(
         'Query parameter token and user id is required',

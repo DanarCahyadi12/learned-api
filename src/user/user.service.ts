@@ -33,7 +33,7 @@ export class UserService {
       console.log(error);
       throw new InternalServerErrorException('Something bad happened', {
         cause: error,
-        description: 'Something bad happened while creating a user',
+        description: 'Something bad happened while finding a user',
       });
     }
   }

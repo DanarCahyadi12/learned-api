@@ -19,8 +19,8 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
   @SkipAuth()
   @Post('signin')
-  async signIn(@Body() dto: AuthDto, @Request() req, @Res() res: Response) {
-    const response = await this.authService.signIn(dto, req, res);
+  async signIn(@Body() dto: AuthDto, @Res() res: Response) {
+    const response = await this.authService.signIn(dto, res);
 
     if (response.code === 202) {
       res.status(response.code).json({

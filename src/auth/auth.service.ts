@@ -7,13 +7,14 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../user/user.service';
 import { AuthDto, GooglePayloadDto } from './DTOs';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { UserEntity } from '../user/entity';
 import { AuthResponse } from './interfaces';
 import * as bcrypt from 'bcrypt';
-import { MailService } from 'src/mail/mail.service';
+import { MailService } from '../mail/mail.service';
 import { SetPasswordDto } from './DTOs';
 import * as crypto from 'crypto';
+
 @Injectable()
 export class AuthService {
   private user: UserEntity;
@@ -23,11 +24,7 @@ export class AuthService {
     private mailService: MailService,
   ) {}
 
-  async signIn(
-    dto: AuthDto,
-    req: Request,
-    res: Response,
-  ): Promise<AuthResponse> {
+  async signIn(dto: AuthDto, res: Response): Promise<AuthResponse> {
     if (!dto.email) throw new BadRequestException('Email is required');
     if (!dto.password) throw new BadRequestException('Password is required');
 
@@ -35,7 +32,7 @@ export class AuthService {
     if (!user) throw new BadRequestException('Email or password is incorrect');
     if (!user.password) {
       const token: string = crypto.randomBytes(32).toString('hex');
-      const url: string = `${process.env.CLIENT_ENDPOINT}?token=${token}&userid=${user.id}`;
+      const url: string = `${process.env.CLIENT_SET_PASSWORD_ENDPOINT}?token=${token}&userid=${user.id}`;
       const mailDto: SetPasswordDto = {
         id: user.id,
         to: user.email,

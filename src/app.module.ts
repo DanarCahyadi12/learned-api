@@ -9,6 +9,9 @@ import { GoogleOauthModule } from './google-oauth/google-oauth.module';
 import { SetPasswordModule } from './set-password/set-password.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { ForgotPasswordController } from './forgot-password/forgot-password.controller';
+import { ForgotPasswordService } from './forgot-password/forgot-password.service';
+import { ForgotPasswordModule } from './forgot-password/forgot-password.module';
 const ENV = process.env.NODE_ENV;
 @Module({
   imports: [
@@ -27,6 +30,9 @@ const ENV = process.env.NODE_ENV;
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'mail', 'templates'),
     }),
+    ForgotPasswordModule,
   ],
+  controllers: [ForgotPasswordController],
+  providers: [ForgotPasswordService],
 })
 export class AppModule {}

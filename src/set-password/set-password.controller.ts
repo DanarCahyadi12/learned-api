@@ -1,6 +1,6 @@
 import { Controller, Post, Query, UseGuards, Body, Get } from '@nestjs/common';
 import { TokenPasswordGuard } from './guards/token-password.guard';
-import { SkipAuth } from 'src/auth/decorators';
+import { SkipAuth } from '../auth/decorators';
 import { SetPasswordDto } from './DTOs';
 import { SetPasswordService } from './set-password.service';
 
@@ -14,7 +14,7 @@ export class SetPasswordController {
   token() {
     return {
       status: 'success',
-      message: 'Token password is verified',
+      message: 'Verified',
     };
   }
   @Post()
@@ -22,7 +22,6 @@ export class SetPasswordController {
     @Query('userid') userID: string,
     @Body() dto: SetPasswordDto,
   ) {
-    console.log(dto);
     return await this.setPasswordService.setPassword(userID, dto);
   }
 }

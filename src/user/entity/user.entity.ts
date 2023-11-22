@@ -6,7 +6,7 @@ export interface UserEntity {
   pictureURL: string | null;
   bio: string | null;
   tokenPassword: string | null;
-  tokenPasswordExpires: bigint | null;
+  tokenPasswordExpires: bigint | number | null;
   createdAt: Date;
   updatedAt: Date;
   refreshToken: string | null;
