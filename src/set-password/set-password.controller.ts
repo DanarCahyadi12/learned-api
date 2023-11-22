@@ -1,18 +1,28 @@
-import { Controller, Get, Query, Render, UseGuards } from '@nestjs/common';
+import { Controller, Post, Query, UseGuards, Body, Get } from '@nestjs/common';
 import { TokenPasswordGuard } from './guards/token-password.guard';
 import { SkipAuth } from 'src/auth/decorators';
+import { SetPasswordDto } from './DTOs';
+import { SetPasswordService } from './set-password.service';
 
 @UseGuards(TokenPasswordGuard)
 @SkipAuth()
 @Controller('set-password')
 export class SetPasswordController {
-  constructor() {}
+  constructor(private readonly setPasswordService: SetPasswordService) {}
 
   @Get()
-  @Render('set-password')
-  root(@Query('token') token: string) {
+  token() {
     return {
-      token,
+      status: 'success',
+      message: 'Token password is verified',
     };
+  }
+  @Post()
+  async setPassword(
+    @Query('userid') userID: string,
+    @Body() dto: SetPasswordDto,
+  ) {
+    console.log(dto);
+    return await this.setPasswordService.setPassword(userID, dto);
   }
 }

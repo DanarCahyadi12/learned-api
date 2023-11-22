@@ -6,8 +6,6 @@ import * as path from 'path';
 import * as ncp from 'ncp';
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
-  app.setBaseViewsDir(path.join(__dirname, '..', 'views'));
-  app.setViewEngine('ejs');
   const sourcePath = path.join(__dirname, '..', 'src', 'mail', 'templates');
   const destinationPath = path.join(__dirname, 'mail', 'templates');
   ncp.ncp(sourcePath, destinationPath, function (err) {

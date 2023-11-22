@@ -161,7 +161,7 @@ describe('UserService', () => {
     const userID: string = '41c3fb5c-220e-4ae5-948c-3cd1ab7e84b6';
     const passwordToken: string =
       'ed40403fbb606a4cd03f91035db5eb9610de62fb8cd0270f036d1e1250d002dc';
-    const expires: number = Date.now() + 60 * 60 * 1000;
+    const expires: any = Date.now() + 60 * 60 * 1000;
     const mockUsers: UserEntity = {
       id: 'cdfe9601-dfb2-4708-9449-f36e446e1b11',
       name: 'I Ketut Danar Cahyadi',
@@ -187,10 +187,8 @@ describe('UserService', () => {
     expect(usersUpdated).toBe(mockUsers);
   });
 
-  it('Should return a user entity when find by password token', async () => {
-    const passwordToken: string =
-      'ed40403fbb606a4cd03f91035db5eb9610de62fb8cd0270f036d1e1250d002dc';
-    const expires: number = Date.now() + 60 * 60 * 1000;
+  it('It should return user entity after updating user password', async () => {
+    const userID: string = '41c3fb5c-220e-4ae5-948c-3cd1ab7e84b6';
     const mockUsers: UserEntity = {
       id: 'cdfe9601-dfb2-4708-9449-f36e446e1b11',
       name: 'I Ketut Danar Cahyadi',
@@ -198,16 +196,18 @@ describe('UserService', () => {
       password: '$2a$10$6URsw55BPivQdveiLezwa.e7JyB5YzGJ3/PWPcd7yMVWOglgs6S6i',
       pictureURL: null,
       refreshToken: null,
-      tokenPassword: passwordToken,
-      tokenPasswordExpires: expires,
+      tokenPassword: null,
+      tokenPasswordExpires: null,
       bio: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
-    (prismaMock.users.findUnique as jest.Mock).mockResolvedValue(mockUsers);
-    const users: UserEntity =
-      await userService.findOneByTokenResetPassword(passwordToken);
-    expect(users).toBeDefined();
-    expect(users).toBe(users);
+    (prismaMock.users.update as jest.Mock).mockResolvedValue(mockUsers);
+    const user: UserEntity = await userService.updateUserPasswordById(
+      userID,
+      '$2a$10$6URsw55BPivQdveiLezwa.e7JyB5YzGJ3/PWPcd7yMVWOglgs6S6i',
+    );
+    expect(user).toBeDefined();
+    expect(user).toBe(mockUsers);
   });
 });

@@ -35,7 +35,7 @@ export class AuthService {
     if (!user) throw new BadRequestException('Email or password is incorrect');
     if (!user.password) {
       const token: string = crypto.randomBytes(32).toString('hex');
-      const url: string = `${req.protocol}://${req.hostname}:${process.env.SERVER_PORT}/set-password?token=${token}`;
+      const url: string = `${process.env.CLIENT_ENDPOINT}?token=${token}&userid=${user.id}`;
       const mailDto: SetPasswordDto = {
         id: user.id,
         to: user.email,
@@ -165,9 +165,11 @@ export class AuthService {
   }
 
   async sendEmailForSetPassword(dto: SetPasswordDto) {
+    const SALT: string = await bcrypt.genSalt(10);
+    const hashedTokenPassword: string = await bcrypt.hash(dto.token, SALT);
     await this.userService.updateTokenPasswordAndExpires(
       dto.id,
-      dto.token,
+      hashedTokenPassword,
       dto.expires,
     );
     await this.mailService.sendEmail(dto);

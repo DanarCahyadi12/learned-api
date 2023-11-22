@@ -79,25 +79,6 @@ export class UserService {
     }
   }
 
-  async findOneByTokenResetPassword(token: string): Promise<UserEntity> {
-    try {
-      return await this.prismaService.users.findUnique({
-        where: {
-          tokenPassword: token,
-        },
-      });
-    } catch (error) {
-      console.log(error);
-      throw new InternalServerErrorException(
-        'Error while find user by token password',
-        {
-          cause: error,
-          description: error,
-        },
-      );
-    }
-  }
-
   async updateTokenPasswordAndExpires(
     id: string,
     token: string,
@@ -120,5 +101,18 @@ export class UserService {
         { cause: error, description: error },
       );
     }
+  }
+
+  async updateUserPasswordById(id: string, password: string) {
+    try {
+      return await this.prismaService.users.update({
+        where: {
+          id: id,
+        },
+        data: {
+          password: password,
+        },
+      });
+    } catch (error) {}
   }
 }
