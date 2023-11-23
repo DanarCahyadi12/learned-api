@@ -1,7 +1,8 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { createUserDto } from './DTOs/index';
+import { UpdateUserDto, createUserDto } from './DTOs/index';
 import { UserEntity } from './entity';
+import { UpdateUserResponse } from './interfaces';
 
 @Injectable()
 export class UserService {
@@ -113,6 +114,12 @@ export class UserService {
           password: password,
         },
       });
-    } catch (error) {}
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException('Error while updating password', {
+        cause: error,
+        description: error,
+      });
+    }
   }
 }

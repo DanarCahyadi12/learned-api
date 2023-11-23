@@ -8,7 +8,7 @@
   "scripts": {
     "migrate:dev": "dotenv -e .env.development -- npx prisma migrate dev",
     "migrate:prod": "dotenv -e .env.production -- npx prisma migrate deploy",
-    "build": "nest build && npm run copy-files",
+    "build": "nest build",
     "copy-files": "copyfiles -u 1 src/**/*.ejs dist",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
@@ -57,6 +57,7 @@
     "@types/ejs": "^3.1.5",
     "@types/express": "^4.17.17",
     "@types/jest": "^29.5.2",
+    "@types/multer": "^1.4.11",
     "@types/ncp": "^2.0.8",
     "@types/node": "^20.3.1",
     "@types/nodemailer": "^6.4.14",

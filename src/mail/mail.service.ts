@@ -51,7 +51,6 @@ export class MailService {
       'templates',
       `${filename}.template.ejs`,
     );
-    console.log(templatePath);
     const templateContent = readFileSync(templatePath, 'utf-8');
     return ejs.render(templateContent, variable);
   }
