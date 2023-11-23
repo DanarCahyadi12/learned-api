@@ -6,6 +6,7 @@ import { UpdateUserResponse } from './interfaces';
 
 @Injectable()
 export class UserService {
+  private pictureURL: string;
   constructor(private readonly prismaService: PrismaService) {}
   async createUser(dto: createUserDto): Promise<UserEntity> {
     try {
@@ -117,6 +118,41 @@ export class UserService {
     } catch (error) {
       console.log(error);
       throw new InternalServerErrorException('Error while updating password', {
+        cause: error,
+        description: error,
+      });
+    }
+  }
+  async updateUser(
+    id: string,
+    picture: string,
+    dto: UpdateUserDto,
+  ): Promise<UpdateUserResponse> {
+    try {
+      this.pictureURL = picture
+        ? `${process.env.PUBLIC_URL}/images/profile-picture/${picture}`
+        : null;
+      const user: UserEntity = await this.prismaService.users.update({
+        where: {
+          id: id,
+        },
+        data: {
+          name: dto.name,
+          pictureURL: this.pictureURL,
+          bio: dto.bio,
+        },
+      });
+
+      return {
+        status: 'success',
+        message: 'User updated successfully',
+        data: {
+          id: user.id,
+        },
+      };
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException('Error while updating user', {
         cause: error,
         description: error,
       });
