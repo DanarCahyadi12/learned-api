@@ -2,7 +2,10 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   Put,
   UploadedFile,
@@ -66,5 +69,11 @@ export class UserController {
     @Body() dto: UpdateUserDto,
   ) {
     return await this.userService.updateUser(id, picture?.filename, dto);
+  }
+
+  @Delete(':id/avatar')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteAvatar(@Param('id') id: string) {
+    await this.userService.deleteAvatar(id);
   }
 }

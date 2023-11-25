@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateUserDto, createUserDto } from './DTOs/index';
 import { UserEntity } from './entity';
@@ -130,6 +135,8 @@ export class UserService {
   ): Promise<UpdateUserResponse> {
     if (!dto.name) throw new BadRequestException('Name is required');
     try {
+      const user = await this.findOneById(id);
+      if (!user) throw new NotFoundException('User not found');
       this.user = picture
         ? await this.updateUserWithAvatar(
             id,
@@ -157,7 +164,7 @@ export class UserService {
   }
 
   async getAvatarPath(id: string): Promise<string> {
-    const { pictureURL } = await this.prismaService.users.findUnique({
+    const user = await this.prismaService.users.findUnique({
       where: {
         id: id,
       },
@@ -165,7 +172,7 @@ export class UserService {
         pictureURL: true,
       },
     });
-    return this.splitAvatarUrl(pictureURL);
+    return this.splitAvatarUrl(user?.pictureURL);
   }
 
   async updateUserWithAvatar(
@@ -238,5 +245,21 @@ export class UserService {
         }
       });
     }
+  }
+
+  async deleteAvatar(id: string) {
+    const user = await this.findOneById(id);
+    if (!user) throw new NotFoundException('User not found');
+    const path = await this.getAvatarPath(id);
+    console.log(path);
+    await this.prismaService.users.update({
+      where: {
+        id: id,
+      },
+      data: {
+        pictureURL: null,
+      },
+    });
+    this.deleteAvatarIfExits(path);
   }
 }
