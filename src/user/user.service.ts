@@ -3,10 +3,10 @@ import { PrismaService } from '../prisma/prisma.service';
 import { UpdateUserDto, createUserDto } from './DTOs/index';
 import { UserEntity } from './entity';
 import { UpdateUserResponse } from './interfaces';
-
+import * as fs from 'fs';
 @Injectable()
 export class UserService {
-  private pictureURL: string;
+  private user: UserEntity;
   constructor(private readonly prismaService: PrismaService) {}
   async createUser(dto: createUserDto): Promise<UserEntity> {
     try {
@@ -125,29 +125,25 @@ export class UserService {
   }
   async updateUser(
     id: string,
-    picture: string,
+    picture: string | null,
     dto: UpdateUserDto,
   ): Promise<UpdateUserResponse> {
     try {
-      this.pictureURL = picture
-        ? `${process.env.PUBLIC_URL}/images/profile-picture/${picture}`
-        : null;
-      const user: UserEntity = await this.prismaService.users.update({
-        where: {
-          id: id,
-        },
-        data: {
-          name: dto.name,
-          pictureURL: this.pictureURL,
-          bio: dto.bio,
-        },
-      });
-
+      this.user = picture
+        ? await this.updateUserWithAvatar(
+            id,
+            `${process.env.PUBLIC_URL}/images/avatars/${picture}`,
+            dto,
+          )
+        : await this.updateUserWithoutAvatar(id, dto);
       return {
         status: 'success',
-        message: 'User updated successfully',
+        message: 'Profile updated!',
         data: {
-          id: user.id,
+          id: this.user.id,
+          name: this.user.name,
+          pictureURL: this.user.pictureURL,
+          bio: this.user.bio,
         },
       };
     } catch (error) {
@@ -155,6 +151,90 @@ export class UserService {
       throw new InternalServerErrorException('Error while updating user', {
         cause: error,
         description: error,
+      });
+    }
+  }
+
+  async getAvatarPath(id: string): Promise<string> {
+    const { pictureURL } = await this.prismaService.users.findUnique({
+      where: {
+        id: id,
+      },
+      select: {
+        pictureURL: true,
+      },
+    });
+    return this.splitAvatarUrl(pictureURL);
+  }
+
+  async updateUserWithAvatar(
+    id: string,
+    picture: string,
+    dto: UpdateUserDto,
+  ): Promise<UserEntity> {
+    try {
+      const path: string = await this.getAvatarPath(id);
+      this.deleteAvatarIfExits(path);
+      return await this.prismaService.users.update({
+        where: {
+          id: id,
+        },
+        data: {
+          name: dto.name,
+          pictureURL: picture,
+          bio: dto.bio,
+        },
+      });
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException('Error while updating user', {
+        cause: error,
+        description: error,
+      });
+    }
+  }
+  async updateUserWithoutAvatar(
+    id: string,
+    dto: UpdateUserDto,
+  ): Promise<UserEntity> {
+    try {
+      return await this.prismaService.users.update({
+        where: {
+          id: id,
+        },
+        data: {
+          name: dto.name,
+          bio: dto.bio,
+        },
+      });
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException('Error while updating user', {
+        cause: error,
+        description: error,
+      });
+    }
+  }
+
+  splitAvatarUrl(url: string): string {
+    if (url && url.includes('public')) {
+      return url
+        .split('/')
+        .splice(3, url.length - 1)
+        .join('/');
+    }
+  }
+
+  deleteAvatarIfExits(path: string) {
+    if (fs.existsSync(`./${path}`)) {
+      fs.rm(`./${path}`, (err) => {
+        if (err) {
+          console.log(err);
+          throw new InternalServerErrorException(
+            'Error while deleting current avatar',
+            { cause: err },
+          );
+        }
       });
     }
   }

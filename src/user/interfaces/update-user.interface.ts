@@ -3,5 +3,8 @@ export interface UpdateUserResponse {
   message: string;
   data: {
     id: string;
+    name: string;
+    bio: string;
+    pictureURL: string;
   };
 }

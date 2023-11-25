@@ -50,7 +50,7 @@ export class UserController {
         callback(null, true);
       },
       storage: diskStorage({
-        destination: './public/images/profile-pictures',
+        destination: './public/images/avatars',
         filename: (_, file, callback) => {
           callback(
             null,
