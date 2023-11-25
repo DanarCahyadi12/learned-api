@@ -38,7 +38,7 @@ describe('AuthService', () => {
       name: 'I Ketut Danar Cahyadi',
       email: 'danar@gmail.com',
       password: '$2a$10$6URsw55BPivQdveiLezwa.e7JyB5YzGJ3/PWPcd7yMVWOglgs6S6i',
-      pictureURL: null,
+      avatarURL: null,
       refreshToken: null,
       tokenPassword: null,
       tokenPasswordExpires: null,

@@ -3,7 +3,7 @@ export interface UserEntity {
   name: string;
   email: string;
   password: string | null;
-  pictureURL: string | null;
+  avatarURL: string | null;
   bio: string | null;
   tokenPassword: string | null;
   tokenPasswordExpires: bigint | number | null;

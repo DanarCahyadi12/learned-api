@@ -31,7 +31,7 @@ export class UserController {
       id: user.id,
       name: user.name,
       bio: user.bio,
-      pictureURL: user.pictureURL,
+      avatarURL: user.avatarURL,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };

@@ -16,7 +16,7 @@ model users {
   name String @db.MediumText
   email String @db.VarChar(255) @unique
   password String? @db.MediumText
-  pictureURL String? @db.MediumText
+  avatarURL String? @db.MediumText
   bio String? @db.LongText
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())

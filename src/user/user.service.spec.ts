@@ -33,7 +33,7 @@ describe('UserService', () => {
       name: 'I Ketut Danar Cahyadi',
       email: 'danar@gmail.com',
       password: '$2a$10$6URsw55BPivQdveiLezwa.e7JyB5YzGJ3/PWPcd7yMVWOglgs6S6i',
-      pictureURL: null,
+      avatarURL: null,
       tokenPassword: null,
       tokenPasswordExpires: null,
       refreshToken: null,
@@ -47,7 +47,7 @@ describe('UserService', () => {
     expect(userCreated).toHaveProperty('id');
     expect(userCreated.name).toBe('I Ketut Danar Cahyadi');
     expect(userCreated.email).toBe('danar@gmail.com');
-    expect(userCreated.pictureURL).toBeNull();
+    expect(userCreated.avatarURL).toBeNull();
     expect(userCreated.refreshToken).toBeNull();
     expect(userCreated.bio).toBeNull();
   });
@@ -58,7 +58,7 @@ describe('UserService', () => {
       name: 'I Ketut Danar Cahyadi',
       email: 'danar@gmail.com',
       password: '$2a$10$6URsw55BPivQdveiLezwa.e7JyB5YzGJ3/PWPcd7yMVWOglgs6S6i',
-      pictureURL: null,
+      avatarURL: null,
       refreshToken: null,
       tokenPassword: null,
       tokenPasswordExpires: null,
@@ -74,7 +74,7 @@ describe('UserService', () => {
     expect(user).toHaveProperty('name');
     expect(user).toHaveProperty('email');
     expect(user).toHaveProperty('password');
-    expect(user).toHaveProperty('pictureURL');
+    expect(user).toHaveProperty('avatarURL');
     expect(user).toHaveProperty('bio');
     expect(user).toHaveProperty('createdAt');
     expect(user).toHaveProperty('updatedAt');
@@ -90,7 +90,7 @@ describe('UserService', () => {
       name: 'I Ketut Danar Cahyadi',
       email: 'danar@gmail.com',
       password: '$2a$10$6URsw55BPivQdveiLezwa.e7JyB5YzGJ3/PWPcd7yMVWOglgs6S6i',
-      pictureURL: null,
+      avatarURL: null,
       refreshToken: null,
       tokenPassword: null,
       tokenPasswordExpires: null,
@@ -119,7 +119,7 @@ describe('UserService', () => {
       name: 'I Ketut Danar Cahyadi',
       email: 'danar@gmail.com',
       password: '$2a$10$6URsw55BPivQdveiLezwa.e7JyB5YzGJ3/PWPcd7yMVWOglgs6S6i',
-      pictureURL: null,
+      avatarURL: null,
       refreshToken: null,
       tokenPassword: null,
       tokenPasswordExpires: null,
@@ -139,7 +139,7 @@ describe('UserService', () => {
     expect(user).toHaveProperty('name');
     expect(user).toHaveProperty('email');
     expect(user).toHaveProperty('password');
-    expect(user).toHaveProperty('pictureURL');
+    expect(user).toHaveProperty('avatarURL');
     expect(user).toHaveProperty('refreshToken');
     expect(user).toHaveProperty('bio');
     expect(user).toHaveProperty('createdAt');
@@ -168,7 +168,7 @@ describe('UserService', () => {
       name: 'I Ketut Danar Cahyadi',
       email: 'danar@gmail.com',
       password: '$2a$10$6URsw55BPivQdveiLezwa.e7JyB5YzGJ3/PWPcd7yMVWOglgs6S6i',
-      pictureURL: null,
+      avatarURL: null,
       refreshToken: null,
       tokenPassword: passwordToken,
       tokenPasswordExpires: expires,
@@ -195,7 +195,7 @@ describe('UserService', () => {
       name: 'I Ketut Danar Cahyadi',
       email: 'danar@gmail.com',
       password: '$2a$10$6URsw55BPivQdveiLezwa.e7JyB5YzGJ3/PWPcd7yMVWOglgs6S6i',
-      pictureURL: null,
+      avatarURL: null,
       refreshToken: null,
       tokenPassword: null,
       tokenPasswordExpires: null,
@@ -223,7 +223,7 @@ describe('UserService', () => {
       name: 'I Made Jentaka',
       email: 'danar@gmail.com',
       password: '$2a$10$6URsw55BPivQdveiLezwa.e7JyB5YzGJ3/PWPcd7yMVWOglgs6S6i',
-      pictureURL: 'http://localhost:3000/public/images/avatars/image.jpg',
+      avatarURL: 'http://localhost:3000/public/images/avatars/image.jpg',
       refreshToken: null,
       tokenPassword: null,
       tokenPasswordExpires: null,
@@ -237,7 +237,7 @@ describe('UserService', () => {
       message: 'Profile updated!',
       data: {
         id: '41c3fb5c-220e-4ae5-948c-3cd1ab7e84b6',
-        pictureURL: 'http://localhost:3000/public/images/avatars/image.jpg',
+        avatarURL: 'http://localhost:3000/public/images/avatars/image.jpg',
         name: 'I Made Jentaka',
         bio: 'This is bio',
       },
@@ -260,7 +260,7 @@ describe('UserService', () => {
       name: 'I Made Jentaka',
       email: 'danar@gmail.com',
       password: '$2a$10$6URsw55BPivQdveiLezwa.e7JyB5YzGJ3/PWPcd7yMVWOglgs6S6i',
-      pictureURL: 'http://localhost:3000/public/images/avatars/image.jpg',
+      avatarURL: 'http://localhost:3000/public/images/avatars/image.jpg',
       refreshToken: null,
       tokenPassword: null,
       tokenPasswordExpires: null,
@@ -281,7 +281,7 @@ describe('UserService', () => {
       name: 'I Made Jentaka',
       email: 'danar@gmail.com',
       password: '$2a$10$6URsw55BPivQdveiLezwa.e7JyB5YzGJ3/PWPcd7yMVWOglgs6S6i',
-      pictureURL: 'http://localhost:3000/public/images/avatars/image.jpg',
+      avatarURL: 'http://localhost:3000/public/images/avatars/image.jpg',
       refreshToken: null,
       tokenPassword: null,
       tokenPasswordExpires: null,
@@ -300,7 +300,7 @@ describe('UserService', () => {
       data: {
         id: '41c3fb5c-220e-4ae5-948c-3cd1ab7e84b6',
         name: 'I Made Jentaka',
-        pictureURL: 'http://localhost:3000/public/images/avatars/image.jpg',
+        avatarURL: 'http://localhost:3000/public/images/avatars/image.jpg',
         bio: 'This is bio',
       },
     };
@@ -318,7 +318,7 @@ describe('UserService', () => {
       name: 'I Made Jentaka',
       email: 'danar@gmail.com',
       password: '$2a$10$6URsw55BPivQdveiLezwa.e7JyB5YzGJ3/PWPcd7yMVWOglgs6S6i',
-      pictureURL: 'http://localhost:3000/public/images/avatars/image.jpg',
+      avatarURL: 'http://localhost:3000/public/images/avatars/image.jpg',
       refreshToken: null,
       tokenPassword: null,
       tokenPasswordExpires: null,
@@ -337,7 +337,7 @@ describe('UserService', () => {
       data: {
         id: '41c3fb5c-220e-4ae5-948c-3cd1ab7e84b6',
         name: 'I Made Jentaka',
-        pictureURL: 'http://localhost:3000/public/images/avatars/image.jpg',
+        avatarURL: 'http://localhost:3000/public/images/avatars/image.jpg',
         bio: 'This is bio',
       },
     };

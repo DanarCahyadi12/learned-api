@@ -150,7 +150,7 @@ export class UserService {
         data: {
           id: this.user.id,
           name: this.user.name,
-          pictureURL: this.user.pictureURL,
+          avatarURL: this.user.avatarURL,
           bio: this.user.bio,
         },
       };
@@ -169,10 +169,10 @@ export class UserService {
         id: id,
       },
       select: {
-        pictureURL: true,
+        avatarURL: true,
       },
     });
-    return this.splitAvatarUrl(user?.pictureURL);
+    return this.splitAvatarUrl(user?.avatarURL);
   }
 
   async updateUserWithAvatar(
@@ -189,7 +189,7 @@ export class UserService {
         },
         data: {
           name: dto.name,
-          pictureURL: picture,
+          avatarURL: picture,
           bio: dto.bio,
         },
       });
@@ -243,6 +243,7 @@ export class UserService {
             { cause: err },
           );
         }
+        console.log('AVATAR DELETED FROM PUBLIC FOLDER!');
       });
     }
   }
@@ -257,9 +258,10 @@ export class UserService {
         id: id,
       },
       data: {
-        pictureURL: null,
+        avatarURL: null,
       },
     });
     this.deleteAvatarIfExits(path);
+    console.log('AVATAR DELETED!');
   }
 }
