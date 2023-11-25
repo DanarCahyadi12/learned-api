@@ -42,7 +42,7 @@ describe('UserService', () => {
     const userPayload: UserPayload = {
       id: 'cdfe9601-dfb2-4708-9449-f36e446e1b11',
       name: 'I Ketut Danar Cahyadi',
-      pictureURL: null,
+      avatarURL: null,
       bio: null,
       createdAt: new Date(),
       updatedAt: new Date(),

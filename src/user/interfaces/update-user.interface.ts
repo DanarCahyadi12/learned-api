@@ -5,6 +5,6 @@ export interface UpdateUserResponse {
     id: string;
     name: string;
     bio: string;
-    pictureURL: string;
+    avatarURL: string;
   };
 }
