@@ -13,6 +13,7 @@ import { Response } from 'express';
 import { RefreshTokenGuard } from './guards';
 import { Cookies, SkipAuth } from './decorators';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
+import { User } from '../user/decorators';
 
 @Controller('auth')
 export class AuthController {
@@ -48,9 +49,8 @@ export class AuthController {
   }
 
   @Get('signout')
-  async signOut(@Request() req, @Res() res: Response) {
-    const { sub } = req.user;
-    await this.authService.signOut(sub, res);
+  async signOut(@User() id: string, @Res() res: Response) {
+    await this.authService.signOut(id, res);
     return res.sendStatus(204);
   }
   @SkipAuth()
