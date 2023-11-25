@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateUserDto, createUserDto } from './DTOs/index';
 import { UserEntity } from './entity';
@@ -128,6 +128,7 @@ export class UserService {
     picture: string | null,
     dto: UpdateUserDto,
   ): Promise<UpdateUserResponse> {
+    if (!dto.name) throw new BadRequestException('Name is required');
     try {
       this.user = picture
         ? await this.updateUserWithAvatar(
