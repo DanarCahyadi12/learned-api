@@ -1,5 +1,10 @@
+import { IsNotEmpty, Length } from 'class-validator';
+
 export class SetPasswordDto {
-  passwordConfirm: string;
+  @IsNotEmpty()
+  @Length(8, 255)
   password: string;
-  userid: string;
+  @IsNotEmpty()
+  @Length(8, 255)
+  passwordConfirm: string;
 }

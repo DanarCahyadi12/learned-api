@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -133,10 +132,9 @@ export class UserService {
     picture: string | null,
     dto: UpdateUserDto,
   ): Promise<UpdateUserResponse> {
-    if (!dto.name) throw new BadRequestException('Name is required');
     try {
       const user = await this.findOneById(id);
-      if (!user) throw new NotFoundException('User not found');
+      if (!user) throw new NotFoundException(['User not found']);
       this.user = picture
         ? await this.updateUserWithAvatar(
             id,
@@ -156,7 +154,7 @@ export class UserService {
       };
     } catch (error) {
       console.log(error);
-      throw new InternalServerErrorException('Error while updating user', {
+      throw new InternalServerErrorException(['Error while updating user'], {
         cause: error,
         description: error,
       });
@@ -195,7 +193,7 @@ export class UserService {
       });
     } catch (error) {
       console.log(error);
-      throw new InternalServerErrorException('Error while updating user', {
+      throw new InternalServerErrorException(['Error while updating user'], {
         cause: error,
         description: error,
       });
@@ -217,7 +215,7 @@ export class UserService {
       });
     } catch (error) {
       console.log(error);
-      throw new InternalServerErrorException('Error while updating user', {
+      throw new InternalServerErrorException(['Error while updating user'], {
         cause: error,
         description: error,
       });
@@ -239,7 +237,7 @@ export class UserService {
         if (err) {
           console.log(err);
           throw new InternalServerErrorException(
-            'Error while deleting current avatar',
+            ['Error while deleting current avatar'],
             { cause: err },
           );
         }
@@ -250,7 +248,7 @@ export class UserService {
 
   async deleteAvatar(id: string) {
     const user = await this.findOneById(id);
-    if (!user) throw new NotFoundException('User not found');
+    if (!user) throw new NotFoundException(['User not found']);
     const path = await this.getAvatarPath(id);
     console.log(path);
     await this.prismaService.users.update({

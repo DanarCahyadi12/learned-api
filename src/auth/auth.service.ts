@@ -25,11 +25,9 @@ export class AuthService {
   ) {}
 
   async signIn(dto: AuthDto, res: Response): Promise<AuthResponse> {
-    if (!dto.email) throw new BadRequestException('Email is required');
-    if (!dto.password) throw new BadRequestException('Password is required');
-
     const user: boolean | UserEntity = await this.validate(dto);
-    if (!user) throw new BadRequestException('Email or password is incorrect');
+    if (!user)
+      throw new BadRequestException(['Email or password is incorrect']);
     if (!user.password) {
       const token: string = crypto.randomBytes(32).toString('hex');
       const url: string = `${process.env.CLIENT_SET_PASSWORD_ENDPOINT}?token=${token}&userid=${user.id}`;
@@ -106,13 +104,13 @@ export class AuthService {
     refreshToken: string,
   ): Promise<AuthResponse> {
     const user: UserEntity = await this.userService.findOneById(sub);
-    if (!user) throw new NotFoundException('User not found');
+    if (!user) throw new NotFoundException(['User not found']);
 
     const isValidRefreshToken = await this.validateRefreshToken(
       refreshToken,
       user.refreshToken,
     );
-    if (!isValidRefreshToken) throw new UnauthorizedException();
+    if (!isValidRefreshToken) throw new UnauthorizedException(['Unauthorized']);
     const newAccessToken: string = await this.generateAccessToken(user.id);
     return {
       status: 'success',

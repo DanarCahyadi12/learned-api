@@ -11,9 +11,8 @@ export class SignupService {
   async signUp(dto: SignUpDto): Promise<SignUpResponse> {
     try {
       const userExits = await this.userService.findOneByEmail(dto.email);
-      if (dto.password.length < 8)
-        throw new BadRequestException('Password must be at least 8 characters');
-      if (userExits) throw new BadRequestException('Email already registered');
+      if (userExits)
+        throw new BadRequestException(['Email already registered']);
 
       const payload = {
         ...dto,
