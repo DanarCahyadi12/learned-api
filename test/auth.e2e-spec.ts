@@ -23,14 +23,14 @@ describe('Auth (e2e)', () => {
 
   it('/auth/signin (POST)', async () => {
     const dto: AuthDto = {
-      email: 'danar@gmail.com',
+      email: 'danarcahyadi@gmail.com',
       password: '12345678',
     };
-    const userUpdated = {
+    const userMock = {
       id: 'cdfe9601-dfb2-4708-9449-f36e446e1b11',
       name: 'I Ketut Danar Cahyadi',
       email: 'danarcahyadi@gmail.com',
-      password: '$2a$10$6URsw55BPivQdveiLezwa.e7JyB5YzGJ3/PWPcd7yMVWOglgs6S6i',
+      password: '$2a$12$xxE.Rn.24xQHU45owPx81OR/cpKRW8ueeR/mnbsklB3WOO/mcaQTW',
       pictureURL: null,
       refreshToken:
         '$2y$10$xdFwD4p1z1g7ckMurp5QVOTB/iw430B2RAygioY1NvnjnKEwCzyh2',
@@ -38,20 +38,8 @@ describe('Auth (e2e)', () => {
       createdAt: new Date(),
       updatedAt: new Date(),
     };
-    const user = {
-      id: 'cdfe9601-dfb2-4708-9449-f36e446e1b11',
-      name: 'I Ketut Danar Cahyadi',
-      email: 'danarcahyadi@gmail.com',
-      password: '$2a$10$6URsw55BPivQdveiLezwa.e7JyB5YzGJ3/PWPcd7yMVWOglgs6S6i',
-      pictureURL: null,
-      refreshToken:
-        '$2y$10$xdFwD4p1z1g7ckMurp5QVOTB/iw430B2RAygioY1NvnjnKEwCzyh2',
-      bio: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    (prismaMock.users.findUnique as jest.Mock).mockResolvedValue(user);
-    (prismaMock.users.update as jest.Mock).mockResolvedValue(userUpdated);
+    (prismaMock.users.findUnique as jest.Mock).mockResolvedValue(userMock);
+    (prismaMock.users.update as jest.Mock).mockResolvedValue(userMock);
 
     const response = await request(app.getHttpServer())
       .post('/auth/signin')
@@ -65,6 +53,66 @@ describe('Auth (e2e)', () => {
     expect(response.body.status).toBe('success');
     expect(response.body.message).toBe('Sign in successfully');
     expect(response.body.data.accessToken).toBeDefined();
+  });
+
+  it('/auth/signin (POST). Should send an email and return 202 http status code', async () => {
+    const dto: AuthDto = {
+      email: 'danarcahyadi@gmail.com',
+      password: '12345678',
+    };
+    const userMock = {
+      id: 'cdfe9601-dfb2-4708-9449-f36e446e1b11',
+      name: 'I Ketut Danar Cahyadi',
+      email: 'danarcahyadi@gmail.com',
+      password: null,
+      pictureURL: null,
+      refreshToken: null,
+      bio: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    (prismaMock.users.findUnique as jest.Mock).mockResolvedValue(userMock);
+    const response = await request(app.getHttpServer())
+      .post('/auth/signin')
+      .send(dto)
+      .expect(202);
+    expect(response.body).toBeDefined();
+    expect(response.body).toHaveProperty('status');
+    expect(response.body).toHaveProperty('message');
+    expect(response.body.status).toBe('accepted');
+    expect(response.body.message).toBe(
+      'We sent email to d******@gmail.com with a link to set your password account',
+    );
+  });
+
+  it('/auth/signin (POST). Return a bad requuest payload', async () => {
+    const dto: AuthDto = {
+      email: 'danarcahyadi@gmail.com',
+      password: '12345678invalidpassword',
+    };
+    const userMock = {
+      id: 'cdfe9601-dfb2-4708-9449-f36e446e1b11',
+      name: 'I Ketut Danar Cahyadi',
+      email: 'danarcahyadi@gmail.com',
+      password: '$2a$12$xxE.Rn.24xQHU45owPx81OR/cpKRW8ueeR/mnbsklB3WOO/mcaQTW',
+      pictureURL: null,
+      refreshToken: null,
+      bio: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    (prismaMock.users.findUnique as jest.Mock).mockResolvedValue(userMock);
+    const response = await request(app.getHttpServer())
+      .post('/auth/signin')
+      .send(dto)
+      .expect(400);
+    expect(response.body).toBeDefined();
+    expect(response.body).toHaveProperty('error');
+    expect(response.body).toHaveProperty('message');
+    expect(response.body.error).toBe('Bad Request');
+    expect(response.body.message).toStrictEqual([
+      'Email or password is incorrect',
+    ]);
   });
   afterAll(async () => {
     await app.close();

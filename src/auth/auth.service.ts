@@ -144,14 +144,17 @@ export class AuthService {
   ): Promise<AuthResponse> {
     this.user = await this.userService.findOneByEmail(payload.email);
     if (!this.user) this.user = await this.userService.createUser(payload);
-    const refreshToken: string = await this.generateRefreshToken(this.user.id);
-    const accessToken: string = await this.generateAccessToken(this.user.id);
-    const hashRefreshToken: string = await bcrypt.hash(refreshToken, 10);
+
+    const tokens: string[] = await Promise.all([
+      this.generateRefreshToken(this.user.id),
+      this.generateAccessToken(this.user.id),
+    ]);
+    const hashRefreshToken: string = await bcrypt.hash(tokens[1], 10);
     await this.userService.updateRefreshTokenUser(
       this.user.id,
       hashRefreshToken,
     );
-    res.cookie('token', refreshToken, {
+    res.cookie('token', tokens[1], {
       maxAge: 3 * 24 * 60 * 60,
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production' ? true : false,
@@ -160,7 +163,7 @@ export class AuthService {
       status: 'success',
       message: 'Sign in successfully',
       data: {
-        accessToken,
+        accessToken: tokens[0],
       },
     };
   }
