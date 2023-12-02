@@ -2,7 +2,6 @@ import { AuthService } from './auth.service';
 import { UserService } from '../user/user.service';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
-import { AuthDto } from './DTOs';
 import { MailService } from 'src/mail/mail.service';
 import { GoogleOauthService } from 'src/google-oauth/google-oauth.service';
 describe('AuthService', () => {
@@ -27,45 +26,6 @@ describe('AuthService', () => {
     expect(accessToken).toBeDefined();
     expect(refreshToken).toBeDefined();
   });
-
-  it('Should return a user when success validate', async () => {
-    const dto: AuthDto = {
-      email: 'danar@gmail.com',
-      password: '12345678',
-    };
-    const user = {
-      id: 'cdfe9601-dfb2-4708-9449-f36e446e1b11',
-      name: 'I Ketut Danar Cahyadi',
-      email: 'danar@gmail.com',
-      password: '$2a$10$6URsw55BPivQdveiLezwa.e7JyB5YzGJ3/PWPcd7yMVWOglgs6S6i',
-      avatarURL: null,
-      refreshToken: null,
-      tokenPassword: null,
-      tokenPasswordExpires: null,
-      bio: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    jest.spyOn(service, 'validate').mockImplementation(async () => user);
-    expect(await service.validate(dto)).toBeTruthy();
-  });
-  it('Should return a false when email incorrect', async () => {
-    const dto: AuthDto = {
-      email: 'danar1212eww@gmail.com',
-      password: '12345678',
-    };
-    jest.spyOn(service, 'validate').mockImplementation(async () => false);
-    expect(await service.validate(dto)).toBeFalsy();
-  });
-  it('Should return a false when password incorrect', async () => {
-    const dto: AuthDto = {
-      email: 'danargmail.com',
-      password: '12345678anjayq9jdj',
-    };
-    jest.spyOn(service, 'validate').mockImplementation(async () => false);
-    expect(await service.validate(dto)).toBeFalsy();
-  });
-
   it('Should return true when compare valid refresh token', async () => {
     const rf: string =
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0MWMzZmI1Yy0yMjBlLTRhZTUtOTQ4Yy0zY2QxYWI3ZTg0YjYiLCJpYXQiOjE3MDAwMjM3NzMsImV4cCI6MTcwMDI4Mjk3M30.4Of7FH6l7e-wJhKr5z3CdiKwmMf3IvdAZPrG2TC5ln0';

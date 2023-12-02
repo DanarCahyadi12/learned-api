@@ -25,10 +25,48 @@ export class AuthService {
   ) {}
 
   async signIn(dto: AuthDto, res: Response): Promise<AuthResponse> {
-    const user: boolean | UserEntity = await this.validate(dto);
+    const user: UserEntity = await this.validate(dto);
+
+    //condition when user logged in using google account
+    if (!user) {
+      const response: AuthResponse = {
+        status: 'accepted',
+        code: 202,
+        message: `We sent email to ${dto.email[0]}******@gmail.com with a link to set your password account`,
+      };
+      return Promise.resolve(response);
+    }
+    //Generate access token and refresh token
+    const tokens: string[] = await Promise.all([
+      this.generateAccessToken(user.id),
+      this.generateRefreshToken(user.id),
+    ]);
+    const hashedRefreshToken: string = await bcrypt.hash(tokens[1], 10);
+
+    await this.userService.updateRefreshTokenUser(user.id, hashedRefreshToken);
+    res.cookie('token', tokens[1], {
+      maxAge: 3 * 24 * 60 * 60,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production' ? true : false,
+    });
+
+    const response: AuthResponse = {
+      status: 'success',
+      message: 'Sign in successfully',
+      code: 200,
+      data: {
+        accessToken: tokens[0],
+      },
+    };
+    return Promise.resolve(response);
+  }
+
+  async validate(dto: AuthDto): Promise<UserEntity> {
+    const user: UserEntity = await this.userService.findOneByEmail(dto.email);
     if (!user)
       throw new BadRequestException(['Email or password is incorrect']);
-    if (!user.password) {
+    const { password } = user;
+    if (!password) {
       const token: string = crypto.randomBytes(32).toString('hex');
       const url: string = `${process.env.CLIENT_SET_PASSWORD_ENDPOINT}?token=${token}&userid=${user.id}`;
       const mailDto: SetPasswordDto = {
@@ -46,43 +84,11 @@ export class AuthService {
       };
 
       await this.sendEmailForSetPassword(mailDto);
-      const response: AuthResponse = {
-        status: 'accepted',
-        message: `We sent email to ${user.email[0]}******@gmail.com with a link to set your password account`,
-        code: 202,
-      };
-
-      return Promise.resolve(response);
+      return;
     }
-    const accessToken: string = await this.generateAccessToken(user.id);
-    const refreshToken: string = await this.generateRefreshToken(user.id);
-    const hashedRefreshToken: string = await bcrypt.hash(refreshToken, 10);
-
-    await this.userService.updateRefreshTokenUser(user.id, hashedRefreshToken);
-    res.cookie('token', refreshToken, {
-      maxAge: 3 * 24 * 60 * 60,
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production' ? true : false,
-    });
-
-    const response: AuthResponse = {
-      status: 'success',
-      message: 'Sign in successfully',
-      code: 200,
-      data: {
-        accessToken,
-      },
-    };
-    return Promise.resolve(response);
-  }
-
-  async validate(dto: AuthDto): Promise<false | UserEntity> {
-    const user: UserEntity = await this.userService.findOneByEmail(dto.email);
-    if (!user) return false;
-    const { password } = user;
-    if (!password) return user;
     const matchPassword = await bcrypt.compare(dto.password, password);
-    if (!matchPassword) return false;
+    if (!matchPassword)
+      throw new BadRequestException(['Email or password is incorrect']);
     return user;
   }
 

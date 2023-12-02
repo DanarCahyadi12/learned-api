@@ -22,19 +22,7 @@ export class AuthController {
   @Post('signin')
   async signIn(@Body() dto: AuthDto, @Res() res: Response) {
     const response = await this.authService.signIn(dto, res);
-
-    if (response.code === 202) {
-      res.status(response.code).json({
-        status: response.status,
-        messsage: response.message,
-      });
-    } else {
-      res.status(response.code).json({
-        status: response.status,
-        messsage: response.message,
-        data: response.data,
-      });
-    }
+    return res.status(response.code).json(response);
   }
 
   @SkipAuth()
