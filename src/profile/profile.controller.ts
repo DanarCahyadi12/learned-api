@@ -29,7 +29,7 @@ export class ProfileController {
   @UseInterceptors(
     FileInterceptor('avatar', {
       limits: {
-        fileSize: 1024 * 1024 * 5,
+        fileSize: 1024 * 1024 * 1,
       },
       fileFilter: (_, file: any, callback: any) => {
         if (!file.mimetype.match(/\/(jpg|jpeg|png)$/)) {
@@ -41,7 +41,7 @@ export class ProfileController {
         callback(null, true);
       },
       storage: diskStorage({
-        destination: './public/images/avatars',
+        destination: 'public/images/avatars',
         filename: (_, file, callback) => {
           callback(
             null,
@@ -56,6 +56,8 @@ export class ProfileController {
     @UploadedFile() avatar: Express.Multer.File,
     @Body() dto: UpdateProfileDto,
   ) {
+    if (avatar.size < 1024 * 2024 * 1)
+      throw new BadRequestException(['The image size must be less than 1mb']);
     return await this.profileService.updateProfile(id, avatar?.filename, dto);
   }
   @Delete('avatar')
