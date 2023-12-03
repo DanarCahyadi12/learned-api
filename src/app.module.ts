@@ -8,6 +8,8 @@ import { MailModule } from './mail/mail.module';
 import { GoogleOauthModule } from './google-oauth/google-oauth.module';
 import { SetPasswordModule } from './set-password/set-password.module';
 import { ForgotPasswordModule } from './forgot-password/forgot-password.module';
+import { ClassroomModule } from './classroom/classroom.module';
+import { ProfileModule } from './profile/profile.module';
 const ENV = process.env.NODE_ENV;
 @Module({
   imports: [
@@ -24,6 +26,8 @@ const ENV = process.env.NODE_ENV;
     GoogleOauthModule,
     SetPasswordModule,
     ForgotPasswordModule,
+    ClassroomModule,
+    ProfileModule,
   ],
 })
 export class AppModule {}
