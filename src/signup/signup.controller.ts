@@ -1,7 +1,7 @@
 import { Body, Controller, Post } from '@nestjs/common';
 import { SignupService } from './signup.service';
 import { SignUpDto } from './DTOs';
-import { SkipAuth } from 'src/auth/decorators';
+import { SkipAuth } from '../auth/decorators';
 
 @SkipAuth()
 @Controller('signup')
