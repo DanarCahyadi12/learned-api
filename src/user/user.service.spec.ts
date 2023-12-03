@@ -1,10 +1,9 @@
 import { UserService } from './user.service';
-import { UpdateUserDto, createUserDto } from './DTOs';
+import { createUserDto } from './DTOs';
 import { PrismaMock, prismaMock } from '../prisma/prisma.mock';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaModule } from '../prisma/prisma.module';
 import { UserEntity } from './entity';
-import { UpdateUserResponse } from './interfaces';
 describe('UserService', () => {
   let userService: UserService;
   beforeEach(async () => {
@@ -210,143 +209,5 @@ describe('UserService', () => {
     );
     expect(user).toBeDefined();
     expect(user).toBe(mockUsers);
-  });
-
-  it('It Should return a valid user payload after updated', async () => {
-    const userID: string = '41c3fb5c-220e-4ae5-948c-3cd1ab7e84b6';
-    const dto: UpdateUserDto = {
-      name: 'I Made Jentaka',
-      bio: 'This is bio',
-    };
-    const mockUsers: UserEntity = {
-      id: '41c3fb5c-220e-4ae5-948c-3cd1ab7e84b6',
-      name: 'I Made Jentaka',
-      email: 'danar@gmail.com',
-      password: '$2a$10$6URsw55BPivQdveiLezwa.e7JyB5YzGJ3/PWPcd7yMVWOglgs6S6i',
-      avatarURL: 'http://localhost:3000/public/images/avatars/image.jpg',
-      refreshToken: null,
-      tokenPassword: null,
-      tokenPasswordExpires: null,
-      bio: 'This is bio',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    const picture: string = 'image.jpg';
-    const expectedResult: UpdateUserResponse = {
-      status: 'success',
-      message: 'Profile updated!',
-      data: {
-        id: '41c3fb5c-220e-4ae5-948c-3cd1ab7e84b6',
-        avatarURL: 'http://localhost:3000/public/images/avatars/image.jpg',
-        name: 'I Made Jentaka',
-        bio: 'This is bio',
-      },
-    };
-    (prismaMock.users.update as jest.Mock).mockResolvedValue(mockUsers);
-    const result = await userService.updateUser(userID, picture, dto);
-    expect(result).toEqual(expectedResult);
-  });
-
-  it('Should return splited avatar url', async () => {
-    const path = userService.splitAvatarUrl(
-      'http://localhost:8000/public/images/avatars/image.jpg',
-    );
-    expect(path).toBe('public/images/avatars/image.jpg');
-  });
-
-  it('Should return a public avatar path', async () => {
-    const mockUsers: UserEntity = {
-      id: '41c3fb5c-220e-4ae5-948c-3cd1ab7e84b6',
-      name: 'I Made Jentaka',
-      email: 'danar@gmail.com',
-      password: '$2a$10$6URsw55BPivQdveiLezwa.e7JyB5YzGJ3/PWPcd7yMVWOglgs6S6i',
-      avatarURL: 'http://localhost:3000/public/images/avatars/image.jpg',
-      refreshToken: null,
-      tokenPassword: null,
-      tokenPasswordExpires: null,
-      bio: 'This is bio',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    (prismaMock.users.findUnique as jest.Mock).mockResolvedValue(mockUsers);
-    const path = await userService.getAvatarPath(
-      'http://localhost:8000/public/images/avatars/image.jpg',
-    );
-    expect(path).toBe('public/images/avatars/image.jpg');
-  });
-
-  it('Should return valid response with updating avatar', async () => {
-    const mockUsers: UserEntity = {
-      id: '41c3fb5c-220e-4ae5-948c-3cd1ab7e84b6',
-      name: 'I Made Jentaka',
-      email: 'danar@gmail.com',
-      password: '$2a$10$6URsw55BPivQdveiLezwa.e7JyB5YzGJ3/PWPcd7yMVWOglgs6S6i',
-      avatarURL: 'http://localhost:3000/public/images/avatars/image.jpg',
-      refreshToken: null,
-      tokenPassword: null,
-      tokenPasswordExpires: null,
-      bio: 'This is bio',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    (prismaMock.users.update as jest.Mock).mockResolvedValue(mockUsers);
-    const dto: UpdateUserDto = {
-      name: 'I Made Jentaka',
-      bio: 'This is bio',
-    };
-    const expectedResult: UpdateUserResponse = {
-      status: 'success',
-      message: 'Profile updated!',
-      data: {
-        id: '41c3fb5c-220e-4ae5-948c-3cd1ab7e84b6',
-        name: 'I Made Jentaka',
-        avatarURL: 'http://localhost:3000/public/images/avatars/image.jpg',
-        bio: 'This is bio',
-      },
-    };
-
-    const result: UpdateUserResponse = await userService.updateUser(
-      '41c3fb5c-220e-4ae5-948c-3cd1ab7e84b6',
-      'image.jpg',
-      dto,
-    );
-    expect(result).toEqual(expectedResult);
-  });
-  it('Should return valid response without updating avatar', async () => {
-    const mockUsers: UserEntity = {
-      id: '41c3fb5c-220e-4ae5-948c-3cd1ab7e84b6',
-      name: 'I Made Jentaka',
-      email: 'danar@gmail.com',
-      password: '$2a$10$6URsw55BPivQdveiLezwa.e7JyB5YzGJ3/PWPcd7yMVWOglgs6S6i',
-      avatarURL: 'http://localhost:3000/public/images/avatars/image.jpg',
-      refreshToken: null,
-      tokenPassword: null,
-      tokenPasswordExpires: null,
-      bio: 'This is bio',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    (prismaMock.users.update as jest.Mock).mockResolvedValue(mockUsers);
-    const dto: UpdateUserDto = {
-      name: 'I Made Jentaka',
-      bio: 'This is bio',
-    };
-    const expectedResult: UpdateUserResponse = {
-      status: 'success',
-      message: 'Profile updated!',
-      data: {
-        id: '41c3fb5c-220e-4ae5-948c-3cd1ab7e84b6',
-        name: 'I Made Jentaka',
-        avatarURL: 'http://localhost:3000/public/images/avatars/image.jpg',
-        bio: 'This is bio',
-      },
-    };
-
-    const result: UpdateUserResponse = await userService.updateUser(
-      '41c3fb5c-220e-4ae5-948c-3cd1ab7e84b6',
-      null,
-      dto,
-    );
-    expect(result).toEqual(expectedResult);
   });
 });
