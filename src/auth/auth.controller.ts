@@ -14,6 +14,7 @@ import { RefreshTokenGuard } from './guards';
 import { Cookies, SkipAuth } from './decorators';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { User } from '../user/decorators';
+import { AuthResponse } from './interfaces';
 
 @Controller('auth')
 export class AuthController {
@@ -21,8 +22,16 @@ export class AuthController {
   @SkipAuth()
   @Post('signin')
   async signIn(@Body() dto: AuthDto, @Res() res: Response) {
-    const response = await this.authService.signIn(dto, res);
-    return res.status(response.code).json(response);
+    const response: AuthResponse = await this.authService.signIn(dto, res);
+    return response.code === 200
+      ? res.status(200).json({
+          status: response.status,
+          message: response.message,
+          data: response.data,
+        })
+      : res
+          .status(202)
+          .json({ status: response.status, message: response.message });
   }
 
   @SkipAuth()
