@@ -44,7 +44,7 @@ export class ClassroomController {
       }),
     }),
   )
-  async creatClassroom(
+  async createClassroom(
     @User() id: string,
     @UploadedFile() banner: Express.Multer.File,
     @Body() dto: CreateClassroomDto,
