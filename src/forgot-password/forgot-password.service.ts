@@ -17,7 +17,7 @@ export class ForgotPasswordService {
   ) {}
 
   async forgotPassword(email: string): Promise<SendMailResponse> {
-    if (!email) throw new BadRequestException('Email is required');
+    if (!email) throw new BadRequestException(['Email is required']);
     const user = await this.userService.findOneByEmail(email);
     if (!user) throw new NotFoundException('User not found');
     const token: string = crypto.randomBytes(32).toString('hex');
