@@ -5,6 +5,9 @@ import {
   UseInterceptors,
   BadRequestException,
   UploadedFile,
+  Get,
+  Query,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { ClassroomService } from './classroom.service';
 import { CreateClassroomDto } from './DTOs';
@@ -54,5 +57,14 @@ export class ClassroomController {
       banner?.filename,
       dto,
     );
+  }
+
+  @Get('created')
+  async getCreatedClassroom(
+    @User() id: string,
+    @Query('page', ParseIntPipe) page: number = 1,
+    @Query('take', ParseIntPipe) take: number = 50,
+  ) {
+    return await this.classroomService.getCreatedClassroom(id, page, take);
   }
 }

@@ -18,6 +18,14 @@ export const PrismaMock = jest.fn(() => {
         findUnique: jest.fn(),
         update: jest.fn(),
         findFirst: jest.fn(),
+        findMany: jest.fn(),
+      },
+      classroom_participants: {
+        create: jest.fn(),
+        findUnique: jest.fn(),
+        update: jest.fn(),
+        findMany: jest.fn(),
+        aggregate: jest.fn(),
       },
       // Add mock implementations for Prisma methods you use in your code
       // Example: user: { findUnique: jest.fn(), create: jest.fn(), ... },
