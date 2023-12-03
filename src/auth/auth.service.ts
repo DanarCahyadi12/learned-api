@@ -42,10 +42,11 @@ export class AuthService {
       this.generateRefreshToken(user.id),
     ]);
     const hashedRefreshToken: string = await bcrypt.hash(tokens[1], 10);
-
+    const cookieExpires = new Date()
+    cookieExpires.setDate(cookieExpires.getDate() + 3)
     await this.userService.updateRefreshTokenUser(user.id, hashedRefreshToken);
     res.cookie('token', tokens[1], {
-      maxAge: 3 * 24 * 60 * 60,
+      expires: cookieExpires,
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production' ? true : false,
     });
