@@ -5,6 +5,6 @@ export type ClassroomEntity = {
   description: string | null;
   bannerURL: string;
   createdAt: Date;
-  updateAt: Date;
+  updatedAt: Date;
   userID: string;
 };
