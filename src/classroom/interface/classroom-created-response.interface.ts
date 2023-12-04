@@ -1,4 +1,4 @@
-import { ClassroomEntity } from '../entity';
+import { ClassroomCreatedEntity } from '../entity';
 
 export interface ClassroomCreatedResponse {
   status: string;
@@ -9,9 +9,8 @@ export interface ClassroomCreatedResponse {
     currentPage: number;
     next: string | null;
     items: {
-      totalParticipant: number;
       totalClassroom: number;
-      classrooms: ClassroomEntity[];
+      classrooms: ClassroomCreatedEntity[];
     };
   };
 }

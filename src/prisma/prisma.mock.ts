@@ -7,6 +7,7 @@ export const PrismaMock = jest.fn(() => {
     prismaMock = {
       $connect: jest.fn(),
       $disconnect: jest.fn(),
+      $queryRaw: jest.fn(),
       users: {
         create: jest.fn(),
         findUnique: jest.fn(),

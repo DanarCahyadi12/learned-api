@@ -2,7 +2,11 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ClassroomService } from './classroom.service';
 import { PrismaModule } from '../prisma/prisma.module';
 import { PrismaMock, prismaMock } from '../prisma/prisma.mock';
-import { ClassroomEntity, ClassroomParticipantEntity } from './entity';
+import {
+  ClassroomCreatedEntity,
+  ClassroomEntity,
+  ClassroomParticipantEntity,
+} from './entity';
 import { CreateClassroomDto } from './DTOs';
 import { ClassroomCreatedResponse, CreateClassroomResponse } from './interface';
 import { Role } from './enums';
@@ -105,24 +109,29 @@ describe('ClassroomService', () => {
   });
 
   it('Should return created classrooms', async () => {
-    const classroomsCreatedMock: ClassroomEntity[] = [
+    const classroomsCreatedMock: ClassroomCreatedEntity[] = [
       {
-        id: 'eb3f5810-65d1-41b4-beb4-872b19aadc3c',
+        id: 'a26de271-3477-41bb-a58a-a9108019b13f',
         code: 'PNBY2',
         name: 'PWPB',
-        description: 'Selamat datang di course PWPB',
         bannerURL: 'http://localhost:3000/public/images/banners/default.jpg',
         createdAt: new Date(),
         updatedAt: new Date(),
-        userID: '41c3fb5c-220e-4ae5-948c-3cd1ab7e84b6',
+        totalParticipant: 1,
+      },
+      {
+        id: 'eb3f5810-65d1-41b4-beb4-872b19aadc3c',
+        code: 'PLO0A',
+        name: 'PBO',
+        bannerURL: 'http://localhost:3000/public/images/banners/default.jpg',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        totalParticipant: 1,
       },
     ];
-    (prismaMock.classroom.findMany as jest.Mock).mockResolvedValue(
+    (prismaMock.$queryRaw as jest.Mock).mockResolvedValue(
       classroomsCreatedMock,
     );
-    (
-      prismaMock.classroom_participants.aggregate as jest.Mock
-    ).mockResolvedValue({ _count: { id: 3 } });
     const expectedResponse: ClassroomCreatedResponse = {
       status: 'success',
       message: 'Get created classroom successfully!',
@@ -132,8 +141,7 @@ describe('ClassroomService', () => {
         currentPage: 1,
         prev: null,
         items: {
-          totalClassroom: 1,
-          totalParticipant: 3,
+          totalClassroom: 2,
           classrooms: classroomsCreatedMock,
         },
       },

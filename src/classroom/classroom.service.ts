@@ -2,9 +2,8 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateClassroomDto } from './DTOs';
 import { ClassroomCreatedResponse, CreateClassroomResponse } from './interface';
-import { ClassroomEntity } from './entity';
+import { ClassroomCreatedEntity } from './entity';
 import { Role } from './enums';
-
 @Injectable()
 export class ClassroomService {
   private banner: string;
@@ -69,40 +68,36 @@ export class ClassroomService {
     take: number,
   ): Promise<ClassroomCreatedResponse> {
     try {
-      const classrooms: ClassroomEntity[] =
-        await this.prismaService.classroom.findMany({
-          skip: (page - 1) * take,
-          take: take,
-          where: {
-            userID: id,
-          },
-        });
+      const offset: number = Math.ceil((page - 1) * take);
 
-      const participant = (
-        await this.prismaService.classroom_participants.aggregate({
-          skip: (page - 1) * take,
-          take: take,
-          _count: {
-            id: true,
-          },
-          where: {
-            classroomID: classrooms[0].id,
-          },
-        })
-      )._count.id;
+      const classroomsCreated: ClassroomCreatedEntity[] = await this
+        .prismaService.$queryRaw`SELECT
+        CAST(COUNT(*) AS CHAR) AS totalParticipant,
+        classroom.id,
+        classroom.code,
+        classroom.name,
+        classroom.description,
+        classroom.bannerURL,
+        classroom.createdAt,
+        classroom.updatedAt
+        FROM classroom_participants
+        INNER JOIN classroom ON classroom.id = classroom_participants.classroomID
+        WHERE classroom_participants.userID = ${id} AND classroom_participants.role = 'TEACHER'
+        GROUP BY classroom_participants.classroomID
+        LIMIT ${take}
+        OFFSET ${offset}`;
 
       const response: ClassroomCreatedResponse = {
         status: 'success',
         message: 'Get created classroom successfully!',
         data: {
-          totalPage: Math.ceil(classrooms.length / take),
+          totalPage: Math.ceil(classroomsCreated.length / take),
           prev: this.getPrevUrl(page, take),
           currentPage: page,
-          next: this.getNextUrl(classrooms.length, take, page),
+          next: this.getNextUrl(classroomsCreated.length, take, page),
           items: {
-            totalClassroom: classrooms.length,
-            totalParticipant: participant,
-            classrooms,
+            totalClassroom: classroomsCreated.length,
+            classrooms: classroomsCreated,
           },
         },
       };
@@ -111,7 +106,7 @@ export class ClassroomService {
       console.log(error);
       throw new InternalServerErrorException(
         ['Error while getting created classroom'],
-        { cause: error },
+        { cause: error, description: error },
       );
     }
   }
@@ -125,8 +120,8 @@ export class ClassroomService {
   }
 
   getNextUrl(totalData: number, take: number, page: number): string {
-    const totalPage: number = Math.round(totalData / take);
-    return page >= totalPage
+    const totalPage: number = Math.ceil(totalData / take);
+    return page > totalPage
       ? null
       : `${process.env.BASE_URL}/classroom/created?page=${
           page + 1
