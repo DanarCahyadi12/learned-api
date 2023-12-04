@@ -86,12 +86,17 @@ export class ClassroomService {
         GROUP BY classroom_participants.classroomID
         LIMIT ${take}
         OFFSET ${offset}`;
-
+      const totalClassroomCreated: number =
+        await this.prismaService.classroom.count({
+          where: {
+            userID: id,
+          },
+        });
       const response: ClassroomCreatedResponse = {
         status: 'success',
         message: 'Get created classroom successfully!',
         data: {
-          totalPage: Math.ceil(classroomsCreated.length / take),
+          totalPage: Math.ceil(totalClassroomCreated / take),
           prev: this.getPrevUrl(page, take),
           currentPage: page,
           next: this.getNextUrl(classroomsCreated.length, take, page),
