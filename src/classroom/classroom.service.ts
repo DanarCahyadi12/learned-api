@@ -1,8 +1,16 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateClassroomDto } from './DTOs';
-import { ClassroomCreatedResponse, CreateClassroomResponse } from './interface';
-import { ClassroomCreatedEntity } from './entity';
+import {
+  ClassroomCreatedResponse,
+  CreateClassroomResponse,
+  DetailClassroomResponse,
+} from './interface';
+import { ClassroomCreatedEntity, DetailClassroomEntity } from './entity';
 import { Role } from './enums';
 @Injectable()
 export class ClassroomService {
@@ -131,5 +139,37 @@ export class ClassroomService {
       : `${process.env.BASE_URL}/classroom/created?page=${
           page + 1
         }&take=${take}`;
+  }
+
+  async getDetailCreatedClassroom(
+    userID: string,
+    classroomID: string,
+  ): Promise<DetailClassroomResponse> {
+    try {
+      const detailClassroom: DetailClassroomEntity[] = await this.prismaService
+        .$queryRaw`SELECT 
+        classroom.*,
+        CAST((SELECT COUNT(*) FROM classroom_participants WHERE classroom_participants.classroomID = ${classroomID}) AS CHAR) as totalParticipant,
+        CAST((SELECT COUNT(*) FROM assignments WHERE assignments.classID = ${classroomID} ) AS CHAR) as totalAssignment,
+        CAST((SELECT COUNT(*) FROM materials WHERE materials.classroomID = ${classroomID} ) AS CHAR) as totalMaterial,
+        CAST(((SELECT COUNT(*) FROM user_assignments WHERE user_assignments.assignmentID IN (SELECT id FROM assignments WHERE classID = ${classroomID})) / (SELECT COUNT(*) FROM classroom_participants WHERE classroom_participants.classroomID = ${classroomID}) * 100) AS CHAR) AS totalSubmitedAssignment,
+        CAST(((SELECT COUNT(*) FROM quiz_results WHERE quiz_results.quizID IN (SELECT id FROM quiz WHERE classID = ${classroomID})) / (SELECT COUNT(*) FROM classroom_participants WHERE classroom_participants.classroomID = ${classroomID}) * 100) AS CHAR) AS totalFinishedQuiz
+      FROM classroom
+      WHERE classroom.id = ${classroomID} AND classroom.userID = ${userID}`;
+      if (!detailClassroom.length)
+        throw new NotFoundException(['Classroom not found!']);
+      return {
+        status: 'success',
+        message: 'Get detail classroom successfully!',
+        data: { ...detailClassroom[0] },
+      };
+    } catch (error) {
+      console.log(error);
+      if (error instanceof NotFoundException) throw error;
+      throw new InternalServerErrorException(
+        ['Something error while get detail classroom'],
+        { cause: error, description: error },
+      );
+    }
   }
 }

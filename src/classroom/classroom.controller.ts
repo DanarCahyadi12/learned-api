@@ -8,6 +8,7 @@ import {
   Get,
   Query,
   ParseIntPipe,
+  Param,
 } from '@nestjs/common';
 import { ClassroomService } from './classroom.service';
 import { CreateClassroomDto } from './DTOs';
@@ -66,5 +67,16 @@ export class ClassroomController {
     @Query('take', ParseIntPipe) take: number = 50,
   ) {
     return await this.classroomService.getCreatedClassroom(id, page, take);
+  }
+
+  @Get('created/:id')
+  async getDetailCreatedClassroom(
+    @User() userID: string,
+    @Param('id') classroomID: string,
+  ) {
+    return await this.classroomService.getDetailCreatedClassroom(
+      userID,
+      classroomID,
+    );
   }
 }

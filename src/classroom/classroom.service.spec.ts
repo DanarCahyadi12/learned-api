@@ -6,9 +6,14 @@ import {
   ClassroomCreatedEntity,
   ClassroomEntity,
   ClassroomParticipantEntity,
+  DetailClassroomEntity,
 } from './entity';
 import { CreateClassroomDto } from './DTOs';
-import { ClassroomCreatedResponse, CreateClassroomResponse } from './interface';
+import {
+  ClassroomCreatedResponse,
+  CreateClassroomResponse,
+  DetailClassroomResponse,
+} from './interface';
 import { Role } from './enums';
 
 describe('ClassroomService', () => {
@@ -132,6 +137,7 @@ describe('ClassroomService', () => {
     (prismaMock.$queryRaw as jest.Mock).mockResolvedValue(
       classroomsCreatedMock,
     );
+    (prismaMock.classroom.count as jest.Mock).mockResolvedValue(2);
     const expectedResponse: ClassroomCreatedResponse = {
       status: 'success',
       message: 'Get created classroom successfully!',
@@ -173,5 +179,37 @@ describe('ClassroomService', () => {
   it('Next url should empty', () => {
     const result: string = service.getNextUrl(100, 70, 2);
     expect(result).toBeNull();
+  });
+
+  it('Should return a detail created classroom', async () => {
+    const dataMock: DetailClassroomEntity = {
+      id: 'edc2f366-f2c0-428b-8eca-2c1fe86efb02',
+      code: 'X7BCS',
+      name: 'Bahasa Indonesia',
+      description: 'Selamat datang di course BHS Indo!',
+      bannerURL: 'http://localhost:3000/public/images/banners/default.jpg',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      userID: 'b21491b5-9b9a-4d5f-82f7-9e6f07004525',
+      totalParticipant: 1,
+      totalAssignment: 1,
+      totalMaterial: 1,
+      totalQuiz: 0,
+      totalSubmitedAssignment: null,
+      totalFinishedQuiz: null,
+    };
+    (prismaMock.$queryRaw as jest.Mock).mockResolvedValue(dataMock);
+    const expectedResponse: DetailClassroomResponse = {
+      status: 'success',
+      message: 'Get detail classroom successfully!',
+      data: dataMock,
+    };
+
+    const result = await service.getDetailCreatedClassroom(
+      'b21491b5-9b9a-4d5f-82f7-9e6f07004525',
+      'edc2f366-f2c0-428b-8eca-2c1fe86efb02',
+    );
+
+    expect(result).toEqual(expectedResponse);
   });
 });

@@ -20,6 +20,7 @@ export const PrismaMock = jest.fn(() => {
         update: jest.fn(),
         findFirst: jest.fn(),
         findMany: jest.fn(),
+        count: jest.fn(),
       },
       classroom_participants: {
         create: jest.fn(),
