@@ -44,6 +44,7 @@ model classroom {
   userJoined classroom_participants[]
   quiz quiz[]
   assignments assignments[]
+  materials materials[]
 }
 
 model classroom_participants {
@@ -190,6 +191,8 @@ model materials {
   id String @id @default(uuid())
   description String? @db.MediumText
   updatedAt DateTime @default(now())
+  classroom classroom @relation(fields: [classroomID],references: [id], onDelete: Cascade, onUpdate: Cascade)
+  classroomID String 
   materials materialFiles[]
 }
 
