@@ -99,7 +99,7 @@ export class ClassroomService {
           totalPage: Math.ceil(totalClassroomCreated / take),
           prev: this.getPrevUrl(page, take),
           currentPage: page,
-          next: this.getNextUrl(classroomsCreated.length, take, page),
+          next: this.getNextUrl(totalClassroomCreated, take, page),
           items: {
             totalClassroom: classroomsCreated.length,
             classrooms: classroomsCreated,
@@ -126,7 +126,7 @@ export class ClassroomService {
 
   getNextUrl(totalData: number, take: number, page: number): string {
     const totalPage: number = Math.ceil(totalData / take);
-    return page > totalPage
+    return page >= totalPage
       ? null
       : `${process.env.BASE_URL}/classroom/created?page=${
           page + 1
