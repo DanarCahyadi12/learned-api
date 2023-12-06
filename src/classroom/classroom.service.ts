@@ -150,6 +150,7 @@ export class ClassroomService {
         .$queryRaw`SELECT 
         classroom.*,
         (SELECT COUNT(*) FROM classroom_participants WHERE classroom_participants.classroomID = ${classroomID}) as totalParticipant,
+        (SELECT COUNT(*) FROM quiz WHERE quiz.classID = classroom.id) as totalQuiz,
         (SELECT COUNT(*) FROM assignments WHERE assignments.classID = ${classroomID} ) as totalAssignment,
         (SELECT COUNT(*) FROM materials WHERE materials.classroomID = ${classroomID} ) as totalMaterial,
         ((SELECT COUNT(*) FROM user_assignments WHERE user_assignments.assignmentID IN (SELECT id FROM assignments WHERE classID = ${classroomID})) / (SELECT COUNT(*) FROM classroom_participants WHERE classroom_participants.classroomID = ${classroomID}) * 100) AS totalSubmitedAssignment,
