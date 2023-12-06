@@ -146,18 +146,31 @@ export class ClassroomService {
     classroomID: string,
   ): Promise<DetailClassroomResponse> {
     try {
-      const detailClassroom: DetailClassroomEntity[] = await this.prismaService
+      let detailClassroom: DetailClassroomEntity[] = await this.prismaService
         .$queryRaw`SELECT 
         classroom.*,
-        CAST((SELECT COUNT(*) FROM classroom_participants WHERE classroom_participants.classroomID = ${classroomID}) AS CHAR) as totalParticipant,
-        CAST((SELECT COUNT(*) FROM assignments WHERE assignments.classID = ${classroomID} ) AS CHAR) as totalAssignment,
-        CAST((SELECT COUNT(*) FROM materials WHERE materials.classroomID = ${classroomID} ) AS CHAR) as totalMaterial,
-        CAST(((SELECT COUNT(*) FROM user_assignments WHERE user_assignments.assignmentID IN (SELECT id FROM assignments WHERE classID = ${classroomID})) / (SELECT COUNT(*) FROM classroom_participants WHERE classroom_participants.classroomID = ${classroomID}) * 100) AS CHAR) AS totalSubmitedAssignment,
-        CAST(((SELECT COUNT(*) FROM quiz_results WHERE quiz_results.quizID IN (SELECT id FROM quiz WHERE classID = ${classroomID})) / (SELECT COUNT(*) FROM classroom_participants WHERE classroom_participants.classroomID = ${classroomID}) * 100) AS CHAR) AS totalFinishedQuiz
+        (SELECT COUNT(*) FROM classroom_participants WHERE classroom_participants.classroomID = ${classroomID}) as totalParticipant,
+        (SELECT COUNT(*) FROM assignments WHERE assignments.classID = ${classroomID} ) as totalAssignment,
+        (SELECT COUNT(*) FROM materials WHERE materials.classroomID = ${classroomID} ) as totalMaterial,
+        ((SELECT COUNT(*) FROM user_assignments WHERE user_assignments.assignmentID IN (SELECT id FROM assignments WHERE classID = ${classroomID})) / (SELECT COUNT(*) FROM classroom_participants WHERE classroom_participants.classroomID = ${classroomID}) * 100) AS totalSubmitedAssignment,
+        ((SELECT COUNT(*) FROM quiz_results WHERE quiz_results.quizID IN (SELECT id FROM quiz WHERE classID = ${classroomID})) / (SELECT COUNT(*) FROM classroom_participants WHERE classroom_participants.classroomID = ${classroomID}) * 100) AS totalFinishedQuiz
       FROM classroom
       WHERE classroom.id = ${classroomID} AND classroom.userID = ${userID}`;
       if (!detailClassroom.length)
         throw new NotFoundException(['Classroom not found!']);
+
+      //convert total field from big int to integer
+      detailClassroom = detailClassroom.map((classroom) => {
+        return {
+          ...classroom,
+          totalParticipant: Number(classroom.totalParticipant),
+          totalAssignment: Number(classroom.totalAssignment),
+          totalMaterial: Number(classroom.totalMaterial),
+          totalSubmitedAssignment: Number(classroom.totalSubmitedAssignment),
+          totalFinishedQuiz: Number(classroom.totalFinishedQuiz),
+          totalQuiz: Number(classroom.totalQuiz),
+        };
+      });
       return {
         status: 'success',
         message: 'Get detail classroom successfully!',
