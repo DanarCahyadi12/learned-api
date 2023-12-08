@@ -173,11 +173,11 @@ model user_assignments {
   userID String 
   submitedAt DateTime @default(now())
   overdue Boolean @default(false)
-  assignmentGraded assignmentGraded?
+  assignmentGraded assignment_graded?
 }
 
 
-model assignmentGraded {
+model assignment_graded {
   id String @id @default(uuid())
   userAssignment user_assignments @relation(fields: [userAssignmentID], references: [id],onDelete: Cascade, onUpdate: Cascade )
   userAssignmentID String @unique
@@ -189,6 +189,7 @@ model assignmentGraded {
 
 model materials {
   id String @id @default(uuid())
+
   description String? @db.MediumText
   updatedAt DateTime @default(now())
   classroom classroom @relation(fields: [classroomID],references: [id], onDelete: Cascade, onUpdate: Cascade)
