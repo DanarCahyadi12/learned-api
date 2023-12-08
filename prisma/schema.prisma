@@ -189,6 +189,8 @@ model assignmentGraded {
 
 model materials {
   id String @id @default(uuid())
+  type String
+  material String
   description String? @db.MediumText
   updatedAt DateTime @default(now())
   classroom classroom @relation(fields: [classroomID],references: [id], onDelete: Cascade, onUpdate: Cascade)
