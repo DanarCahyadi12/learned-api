@@ -73,8 +73,8 @@ model quiz {
   allowSeeResult Boolean @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
-  classroom classroom @relation(fields: [classID], references: [id],onDelete: Cascade, onUpdate: Cascade)
-  classID String
+  classroom classroom @relation(fields: [classroomID], references: [id],onDelete: Cascade, onUpdate: Cascade)
+  classroomID String
   quizQuestions quiz_questions[]
   quizResult quiz_results[]
   quizOnGoing quiz_on_going[]
@@ -150,17 +150,26 @@ model assignments {
   id String @id @default(uuid())
   title String
   description String? @db.MediumText
-  openedAt DateTime
+  openedAt DateTime @default(now())
   closedAt DateTime? 
   passGrade Int?
-  attachment String?
   extensions String?
   allowSeeGrade Boolean @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
-  classroom classroom @relation(fields: [classID], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  classID String
+  classroom classroom @relation(fields: [classroomID], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  classroomID String
   users user_assignments[]
+  attachments assignment_attachments[]
+}
+
+model assignment_attachments {
+  id String @id @default(uuid())
+  attachmentURL String 
+  createdAt DateTime @default(now())
+  assignments assignments @relation(fields: [assignmentID], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  assignmentID String
+
 }
 
 model user_assignments {
