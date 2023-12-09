@@ -238,7 +238,7 @@ export class ClassroomService {
             extensions,
           },
         });
-      await this.createAttachments(files, assignment.id);
+      if (files.attachment) await this.createAttachments(files, assignment.id);
       return {
         status: 'success',
         message: 'Assignment created!',
