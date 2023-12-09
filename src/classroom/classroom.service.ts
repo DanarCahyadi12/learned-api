@@ -227,7 +227,7 @@ export class ClassroomService {
     classroomID: string,
     files: { attachment: Express.Multer.File[] },
     dto: CreateAssignmentDto,
-  ): Promise<CreateAssignmentResponse | void> {
+  ): Promise<CreateAssignmentResponse> {
     const extensions = dto.extensions.join(',');
     try {
       const assignment: ClassroomCreatedAssignmentEntity =
@@ -239,6 +239,13 @@ export class ClassroomService {
           },
         });
       await this.createAttachments(files, assignment.id);
+      return {
+        status: 'success',
+        message: 'Assignment created!',
+        data: {
+          id: assignment.id,
+        },
+      };
     } catch (error) {
       console.log(error);
       throw new InternalServerErrorException(
