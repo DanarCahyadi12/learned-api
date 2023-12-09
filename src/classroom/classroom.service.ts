@@ -4,14 +4,22 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateClassroomDto } from './DTOs';
+import { CreateAssignmentDto, CreateClassroomDto } from './DTOs';
 import {
   ClassroomCreatedResponse,
+  CreateAssignmentResponse,
   CreateClassroomResponse,
   DetailClassroomResponse,
 } from './interface';
-import { ClassroomCreatedEntity, DetailClassroomEntity } from './entity';
+import {
+  ClassroomCreatedAssignmentEntity,
+  ClassroomCreatedEntity,
+  DetailClassroomEntity,
+} from './entity';
 import { Role } from './enums';
+import { ClassroomCreatedAssignmentResponse } from './interface';
+import * as fs from 'fs';
+import { join } from 'path';
 @Injectable()
 export class ClassroomService {
   private banner: string;
@@ -185,5 +193,111 @@ export class ClassroomService {
         { cause: error, description: error },
       );
     }
+  }
+
+  async getCreatedClassroomAssignments(
+    classroomID: string,
+  ): Promise<ClassroomCreatedAssignmentResponse> {
+    try {
+      const assignments: ClassroomCreatedAssignmentEntity[] =
+        await this.prismaService.assignments.findMany({
+          where: {
+            classroomID: classroomID,
+          },
+        });
+
+      return {
+        status: 'success',
+        message: 'Get created classroom assignments successfully',
+        data: {
+          total: assignments.length,
+          assignments,
+        },
+      };
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException(
+        ['Error while get created classroom assignments'],
+        { cause: error, description: error },
+      );
+    }
+  }
+
+  async createAssignment(
+    classroomID: string,
+    files: { attachment: Express.Multer.File[] },
+    dto: CreateAssignmentDto,
+  ): Promise<CreateAssignmentResponse | void> {
+    const extensions = dto.extensions.join(',');
+    try {
+      const assignment: ClassroomCreatedAssignmentEntity =
+        await this.prismaService.assignments.create({
+          data: {
+            ...dto,
+            classroomID,
+            extensions,
+          },
+        });
+      await this.createAttachments(files, assignment.id);
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException(
+        ['Error while creating assignment'],
+        { cause: error, description: error },
+      );
+    }
+  }
+  async createAttachments(
+    files: { attachment: Express.Multer.File[] },
+    assignmentID: string,
+  ) {
+    const attachmentsData = [];
+
+    try {
+      files.attachment.forEach((attachment) => {
+        const time = new Date().getTime();
+        const destinationPath = join(
+          __dirname,
+          '..',
+          '..',
+          'storages',
+          'teacher',
+          'attachments',
+          time.toString(),
+        );
+        this.moveAttachment(attachment, destinationPath);
+        const attachmentURL: string = `${
+          process.env.STORAGE_URL
+        }/teacher/attachments/${time.toString()}/${attachment.originalname}`;
+        attachmentsData.push({
+          attachmentURL,
+          assignmentID,
+        });
+      });
+      await this.prismaService.assignment_attachments.createMany({
+        data: attachmentsData,
+      });
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+  moveAttachment(attachment: Express.Multer.File, destPath: string): void {
+    const bufferFile = Buffer.from(attachment.buffer);
+    if (!fs.existsSync(destPath)) {
+      fs.mkdirSync(destPath);
+      fs.writeFile(`${destPath}/${attachment.originalname}`, '', (err: any) => {
+        if (err) throw err;
+        console.log('File created!');
+      });
+    }
+    fs.writeFile(
+      `${destPath}/${attachment.originalname}`,
+      bufferFile,
+      (err) => {
+        if (err) throw err;
+        console.log('Attachment moved!');
+      },
+    );
   }
 }

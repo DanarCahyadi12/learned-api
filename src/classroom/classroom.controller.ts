@@ -9,14 +9,20 @@ import {
   Query,
   ParseIntPipe,
   Param,
+  UploadedFiles,
 } from '@nestjs/common';
 import { ClassroomService } from './classroom.service';
-import { CreateClassroomDto } from './DTOs';
+import { CreateAssignmentDto, CreateClassroomDto } from './DTOs';
 import { User } from '../user/decorators';
-import { FileInterceptor } from '@nestjs/platform-express';
+import {
+  FileFieldsInterceptor,
+  FileInterceptor,
+} from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { getCurrentDate } from 'src/utils';
 import { extname } from 'path';
+import { UseGuards } from '@nestjs/common';
+import { TeacherGuard } from './guards';
 
 @Controller('classroom')
 export class ClassroomController {
@@ -60,6 +66,7 @@ export class ClassroomController {
     );
   }
 
+  @UseGuards(TeacherGuard)
   @Get('created')
   async getCreatedClassroom(
     @User() id: string,
@@ -69,6 +76,7 @@ export class ClassroomController {
     return await this.classroomService.getCreatedClassroom(id, page, take);
   }
 
+  @UseGuards(TeacherGuard)
   @Get('created/:id')
   async getDetailCreatedClassroom(
     @User() userID: string,
@@ -77,6 +85,53 @@ export class ClassroomController {
     return await this.classroomService.getDetailCreatedClassroom(
       userID,
       classroomID,
+    );
+  }
+
+  @UseGuards(TeacherGuard)
+  @Get('created/:id/assignments')
+  async getCreatedClassroomAssignments(@Param('id') classroomID: string) {
+    return await this.classroomService.getCreatedClassroomAssignments(
+      classroomID,
+    );
+  }
+
+  @UseGuards(TeacherGuard)
+  @UseInterceptors(
+    FileFieldsInterceptor(
+      [
+        {
+          name: 'attachment',
+        },
+      ],
+      {
+        limits: {
+          fieldSize: 1024 * 1024 * 10,
+        },
+        fileFilter(_, file: any, callback: any) {
+          if (!file.mimetype.match(/\/(jpg|jpeg|png|pdf|docx|xlxs|ppt)$/)) {
+            return callback(
+              new BadRequestException([
+                'Extension must be .png, .jpg, .jpeg, .docx, .xlsx, .ppt',
+              ]),
+              false,
+            );
+          }
+          callback(null, true);
+        },
+      },
+    ),
+  )
+  @Post('created/:id/assignment')
+  async createAssignment(
+    @Param('id') classroomID: string,
+    @Body() dto: CreateAssignmentDto,
+    @UploadedFiles() files: { attachment: Express.Multer.File[] },
+  ) {
+    return await this.classroomService.createAssignment(
+      classroomID,
+      files,
+      dto,
     );
   }
 }

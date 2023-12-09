@@ -3,6 +3,7 @@ import { ClassroomService } from './classroom.service';
 import { PrismaModule } from '../prisma/prisma.module';
 import { PrismaMock, prismaMock } from '../prisma/prisma.mock';
 import {
+  ClassroomCreatedAssignmentEntity,
   ClassroomCreatedEntity,
   ClassroomEntity,
   ClassroomParticipantEntity,
@@ -10,12 +11,12 @@ import {
 } from './entity';
 import { CreateClassroomDto } from './DTOs';
 import {
+  ClassroomCreatedAssignmentResponse,
   ClassroomCreatedResponse,
   CreateClassroomResponse,
   DetailClassroomResponse,
 } from './interface';
 import { Role } from './enums';
-
 describe('ClassroomService', () => {
   let service: ClassroomService;
 
@@ -211,5 +212,106 @@ describe('ClassroomService', () => {
     );
 
     expect(result).toEqual(expectedResponse);
+  });
+
+  it('Should return created classroom assigments', async () => {
+    const assignmentsMock: ClassroomCreatedAssignmentEntity[] = [
+      {
+        id: '3271f3cd-dfae-4ae9-bed0-b9d9918deea6',
+        title: 'assignment 1',
+        description: null,
+        openedAt: new Date(),
+        closedAt: null,
+        passGrade: null,
+        extensions: '.jpg, .png',
+        allowSeeGrade: false,
+        updatedAt: new Date(),
+        createdAt: new Date(),
+        classroomID: 'edc2f366-f2c0-428b-8eca-2c1fe86efb02',
+      },
+      {
+        id: '07177838-3ae8-4fc6-9982-623251c836b0',
+        title: 'assignment 2',
+        description: null,
+        createdAt: new Date(),
+        openedAt: new Date(),
+        closedAt: null,
+        passGrade: null,
+        extensions: '.jpg, .png',
+        allowSeeGrade: false,
+        updatedAt: new Date(),
+        classroomID: 'edc2f366-f2c0-428b-8eca-2c1fe86efb02',
+      },
+      {
+        id: 'b31e3a8e-89d2-462e-9e4d-8bb4b04d634d',
+        title: 'assignment 3',
+        description: null,
+        createdAt: new Date(),
+        openedAt: new Date(),
+        closedAt: null,
+        passGrade: null,
+        extensions: '.jpg, .png',
+        allowSeeGrade: false,
+        updatedAt: new Date(),
+        classroomID: 'edc2f366-f2c0-428b-8eca-2c1fe86efb02',
+      },
+    ];
+
+    (prismaMock.assignments.findMany as jest.Mock).mockResolvedValue(
+      assignmentsMock,
+    );
+    const resultExpected: ClassroomCreatedAssignmentResponse = {
+      status: 'success',
+      message: 'Get created classroom assignments successfully',
+      data: {
+        total: 3,
+        assignments: [
+          {
+            id: '3271f3cd-dfae-4ae9-bed0-b9d9918deea6',
+            title: 'assignment 1',
+            description: null,
+            openedAt: new Date(),
+            closedAt: null,
+            passGrade: null,
+            extensions: '.jpg, .png',
+            allowSeeGrade: false,
+            updatedAt: new Date(),
+            createdAt: new Date(),
+            classroomID: 'edc2f366-f2c0-428b-8eca-2c1fe86efb02',
+          },
+          {
+            id: '07177838-3ae8-4fc6-9982-623251c836b0',
+            title: 'assignment 2',
+            description: null,
+            createdAt: new Date(),
+            openedAt: new Date(),
+            closedAt: null,
+            passGrade: null,
+            extensions: '.jpg, .png',
+            allowSeeGrade: false,
+            updatedAt: new Date(),
+            classroomID: 'edc2f366-f2c0-428b-8eca-2c1fe86efb02',
+          },
+          {
+            id: 'b31e3a8e-89d2-462e-9e4d-8bb4b04d634d',
+            title: 'assignment 3',
+            description: null,
+            createdAt: new Date(),
+            openedAt: new Date(),
+            closedAt: null,
+            passGrade: null,
+            extensions: '.jpg, .png',
+            allowSeeGrade: false,
+            updatedAt: new Date(),
+            classroomID: 'edc2f366-f2c0-428b-8eca-2c1fe86efb02',
+          },
+        ],
+      },
+    };
+    const result: ClassroomCreatedAssignmentResponse =
+      await service.getCreatedClassroomAssignments(
+        'edc2f366-f2c0-428b-8eca-2c1fe86efb02',
+      );
+    expect(result).toEqual(resultExpected);
   });
 });
