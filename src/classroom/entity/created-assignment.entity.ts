@@ -1,4 +1,4 @@
-export interface ClassroomCreatedAssignmentEntity {
+export interface CreatedAssignmentEntity {
   id: string;
   title: string;
   description: string;

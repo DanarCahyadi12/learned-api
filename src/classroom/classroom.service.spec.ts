@@ -3,7 +3,7 @@ import { ClassroomService } from './classroom.service';
 import { PrismaModule } from '../prisma/prisma.module';
 import { PrismaMock, prismaMock } from '../prisma/prisma.mock';
 import {
-  ClassroomCreatedAssignmentEntity,
+  CreatedAssignmentEntity,
   ClassroomCreatedEntity,
   ClassroomEntity,
   ClassroomParticipantEntity,
@@ -11,7 +11,7 @@ import {
 } from './entity';
 import { CreateClassroomDto } from './DTOs';
 import {
-  ClassroomCreatedAssignmentResponse,
+  CreatedAssignmentResponse,
   ClassroomCreatedResponse,
   CreateClassroomResponse,
   DetailClassroomResponse,
@@ -215,7 +215,7 @@ describe('ClassroomService', () => {
   });
 
   it('Should return created classroom assigments', async () => {
-    const assignmentsMock: ClassroomCreatedAssignmentEntity[] = [
+    const assignmentsMock: CreatedAssignmentEntity[] = [
       {
         id: '3271f3cd-dfae-4ae9-bed0-b9d9918deea6',
         title: 'assignment 1',
@@ -260,7 +260,7 @@ describe('ClassroomService', () => {
     (prismaMock.assignments.findMany as jest.Mock).mockResolvedValue(
       assignmentsMock,
     );
-    const resultExpected: ClassroomCreatedAssignmentResponse = {
+    const resultExpected: CreatedAssignmentResponse = {
       status: 'success',
       message: 'Get created classroom assignments successfully',
       data: {
@@ -308,10 +308,23 @@ describe('ClassroomService', () => {
         ],
       },
     };
-    const result: ClassroomCreatedAssignmentResponse =
+    const result: CreatedAssignmentResponse =
       await service.getCreatedClassroomAssignments(
         'edc2f366-f2c0-428b-8eca-2c1fe86efb02',
       );
     expect(result).toEqual(resultExpected);
+  });
+
+  it('Should deleted file and not throw an error', () => {
+    try {
+      service.deleteAttachmentFile(
+        'http://localhost:3000/storages/teacher/attachments/1702095715631/tgs b indo 3.14 dan 4. 14 Sintya Kumara.pdf',
+      );
+    } catch (error) {
+      if (error) {
+        console.log(error);
+        expect(error).toBeUndefined();
+      }
+    }
   });
 });

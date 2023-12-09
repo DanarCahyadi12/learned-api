@@ -10,9 +10,14 @@ import {
   ParseIntPipe,
   Param,
   UploadedFiles,
+  Put,
 } from '@nestjs/common';
 import { ClassroomService } from './classroom.service';
-import { CreateAssignmentDto, CreateClassroomDto } from './DTOs';
+import {
+  CreateAssignmentDto,
+  CreateClassroomDto,
+  UpdateAssignmentDto,
+} from './DTOs';
 import { User } from '../user/decorators';
 import {
   FileFieldsInterceptor,
@@ -132,6 +137,45 @@ export class ClassroomController {
       classroomID,
       files,
       dto,
+    );
+  }
+
+  @UseGuards(TeacherGuard)
+  @UseInterceptors(
+    FileFieldsInterceptor(
+      [
+        {
+          name: 'attachment',
+        },
+      ],
+      {
+        limits: {
+          fieldSize: 1024 * 1024 * 10,
+        },
+        fileFilter(_, file: any, callback: any) {
+          if (!file.mimetype.match(/\/(jpg|jpeg|png|pdf|docx|xlxs|ppt)$/)) {
+            return callback(
+              new BadRequestException([
+                'Extension must be .png, .jpg, .jpeg, .docx, .xlsx, .ppt',
+              ]),
+              false,
+            );
+          }
+          callback(null, true);
+        },
+      },
+    ),
+  )
+  @Put('created/:id/assignment/:assignmentID')
+  async updateAssignment(
+    @Param('assignmentID') assignmentID: string,
+    @Body() dto: UpdateAssignmentDto,
+    @UploadedFiles() files: { attachment: Express.Multer.File[] },
+  ) {
+    return await this.classroomService.updateAssignment(
+      assignmentID,
+      dto,
+      files,
     );
   }
 }
