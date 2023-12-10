@@ -214,6 +214,12 @@ export class ClassroomService {
         page,
         take,
       );
+      const totalAssignment: number =
+        await this.prismaService.assignments.count({
+          where: {
+            classroomID,
+          },
+        });
       return {
         status: 'success',
         message: 'Get created classroom assignments successfully',
@@ -221,7 +227,7 @@ export class ClassroomService {
           prev: this.getPrevUrl(page, take),
           currentPage: page,
           next: this.getNextUrl(assignments.length, take, page),
-          totalAssignment: assignments.length,
+          totalAssignment,
           assignments,
         },
       };
