@@ -1,6 +1,5 @@
-import { AssignmentEntity } from '../entity';
-
-export interface CreatedAssignmentResponse {
+import { AssignmentEntity } from '../enitity';
+export interface GetAssignmentResponse {
   status: string;
   message: string;
   data: {

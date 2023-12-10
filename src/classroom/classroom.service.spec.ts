@@ -15,7 +15,7 @@ import {
   ClassroomCreatedResponse,
   CreateClassroomResponse,
   DetailClassroomResponse,
-} from './interface';
+} from './interfaces';
 import { Role } from './enums';
 describe('ClassroomService', () => {
   let service: ClassroomService;

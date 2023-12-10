@@ -13,11 +13,8 @@ import {
   Put,
 } from '@nestjs/common';
 import { ClassroomService } from './classroom.service';
-import {
-  CreateAssignmentDto,
-  CreateClassroomDto,
-  UpdateAssignmentDto,
-} from './DTOs';
+import { CreateClassroomDto } from './DTOs';
+import { CreateAssignmentDto, UpdateAssignmentDto } from '../assignments/DTOs';
 import { User } from '../user/decorators';
 import {
   FileFieldsInterceptor,
@@ -28,10 +25,15 @@ import { getCurrentDate } from 'src/utils';
 import { extname } from 'path';
 import { UseGuards } from '@nestjs/common';
 import { TeacherGuard } from './guards';
+import { CreateMaterialDto } from '../materials/DTOs';
+import { AssignmentsService } from '../assignments/assignments.service';
 
 @Controller('classroom')
 export class ClassroomController {
-  constructor(private readonly classroomService: ClassroomService) {}
+  constructor(
+    private readonly classroomService: ClassroomService,
+    private readonly assignmentsService: AssignmentsService,
+  ) {}
 
   @Post()
   @UseInterceptors(
@@ -125,7 +127,7 @@ export class ClassroomController {
     @Body() dto: CreateAssignmentDto,
     @UploadedFiles() files: { attachment: Express.Multer.File[] },
   ) {
-    return await this.classroomService.createAssignment(
+    return await this.assignmentsService.createAssignment(
       classroomID,
       files,
       dto,
@@ -164,7 +166,7 @@ export class ClassroomController {
     @Body() dto: UpdateAssignmentDto,
     @UploadedFiles() files: { attachment: Express.Multer.File[] },
   ) {
-    return await this.classroomService.updateAssignment(
+    return await this.assignmentsService.updateAssignment(
       assignmentID,
       dto,
       files,
@@ -178,12 +180,11 @@ export class ClassroomController {
     @Query('page', ParseIntPipe) page: number = 1,
     @Query('take', ParseIntPipe) take: number = 50,
   ) {
-    const result = await this.classroomService.getCreatedClassroomAssignments(
+    const result = await this.assignmentsService.getAssignments(
       classroomID,
       page,
       take,
     );
-    console.log(result);
     return result;
   }
 }
