@@ -94,14 +94,6 @@ export class ClassroomController {
   }
 
   @UseGuards(TeacherGuard)
-  @Get('created/:id/assignments')
-  async getCreatedClassroomAssignments(@Param('id') classroomID: string) {
-    return await this.classroomService.getCreatedClassroomAssignments(
-      classroomID,
-    );
-  }
-
-  @UseGuards(TeacherGuard)
   @UseInterceptors(
     FileFieldsInterceptor(
       [
@@ -181,7 +173,17 @@ export class ClassroomController {
 
   @UseGuards(TeacherGuard)
   @Get('created/:id/assignments')
-  async getCreatedAssignments(@Param('id') classroomID: string) {
-    return await this.classroomService.getCreatedAssignments(classroomID);
+  async getCreatedAssignments(
+    @Param('id') classroomID: string,
+    @Query('page', ParseIntPipe) page: number = 1,
+    @Query('take', ParseIntPipe) take: number = 50,
+  ) {
+    const result = await this.classroomService.getCreatedClassroomAssignments(
+      classroomID,
+      page,
+      take,
+    );
+    console.log(result);
+    return result;
   }
 }

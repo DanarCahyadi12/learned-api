@@ -196,8 +196,8 @@ describe('ClassroomService', () => {
       totalAssignment: 1,
       totalMaterial: 1,
       totalQuiz: 0,
-      totalSubmitedAssignment: null,
-      totalFinishedQuiz: null,
+      totalSubmitedAssignment: 0,
+      totalFinishedQuiz: 0,
     };
     (prismaMock.$queryRaw as jest.Mock).mockResolvedValue(dataMock);
     const expectedResponse: DetailClassroomResponse = {
@@ -294,6 +294,9 @@ describe('ClassroomService', () => {
       status: 'success',
       message: 'Get created classroom assignments successfully',
       data: {
+        prev: null,
+        currentPage: 1,
+        next: null,
         totalAssignment: 3,
         assignments: assignmentsMock,
       },
@@ -301,6 +304,8 @@ describe('ClassroomService', () => {
     const result: CreatedAssignmentResponse =
       await service.getCreatedClassroomAssignments(
         'edc2f366-f2c0-428b-8eca-2c1fe86efb02',
+        1,
+        50,
       );
     expect(result).toEqual(resultExpected);
   });

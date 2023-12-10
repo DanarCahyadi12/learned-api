@@ -161,7 +161,7 @@ export class ClassroomService {
     classroomID: string,
   ): Promise<DetailClassroomResponse> {
     try {
-      let detailClassroom: DetailClassroomEntity[] = await this.prismaService
+      let detailClassroom: DetailClassroomEntity = await this.prismaService
         .$queryRaw`SELECT 
         classroom.*,
         (SELECT COUNT(*) FROM classroom_participants WHERE classroom_participants.classroomID = ${classroomID}) as totalParticipant,
@@ -172,25 +172,26 @@ export class ClassroomService {
         ((SELECT COUNT(*) FROM quiz_results WHERE quiz_results.quizID IN (SELECT id FROM quiz WHERE classroomID = ${classroomID})) / (SELECT COUNT(*) FROM classroom_participants WHERE classroom_participants.classroomID = ${classroomID}) * 100) AS totalFinishedQuiz
       FROM classroom
       WHERE classroom.id = ${classroomID} AND classroom.userID = ${userID}`;
-      if (!detailClassroom.length)
+      console.log(detailClassroom);
+      if (!detailClassroom)
         throw new NotFoundException(['Classroom not found!']);
 
       //convert total field from big int to integer
-      detailClassroom = detailClassroom.map((classroom) => {
-        return {
-          ...classroom,
-          totalParticipant: Number(classroom.totalParticipant),
-          totalAssignment: Number(classroom.totalAssignment),
-          totalMaterial: Number(classroom.totalMaterial),
-          totalSubmitedAssignment: Number(classroom.totalSubmitedAssignment),
-          totalFinishedQuiz: Number(classroom.totalFinishedQuiz),
-          totalQuiz: Number(classroom.totalQuiz),
-        };
-      });
+      detailClassroom = {
+        ...detailClassroom,
+        totalParticipant: Number(detailClassroom.totalParticipant),
+        totalAssignment: Number(detailClassroom.totalAssignment),
+        totalMaterial: Number(detailClassroom.totalMaterial),
+        totalSubmitedAssignment: Number(
+          detailClassroom.totalSubmitedAssignment,
+        ),
+        totalFinishedQuiz: Number(detailClassroom.totalFinishedQuiz),
+        totalQuiz: Number(detailClassroom.totalQuiz),
+      };
       return {
         status: 'success',
         message: 'Get detail classroom successfully!',
-        data: { ...detailClassroom[0] },
+        data: { ...detailClassroom },
       };
     } catch (error) {
       console.log(error);
@@ -204,14 +205,22 @@ export class ClassroomService {
 
   async getCreatedClassroomAssignments(
     classroomID: string,
+    page: number,
+    take: number,
   ): Promise<CreatedAssignmentResponse> {
     try {
-      const assignments: AssignmentEntity[] =
-        await this.getCreatedAssignments(classroomID);
+      const assignments: AssignmentEntity[] = await this.getCreatedAssignments(
+        classroomID,
+        page,
+        take,
+      );
       return {
         status: 'success',
         message: 'Get created classroom assignments successfully',
         data: {
+          prev: this.getPrevUrl(page, take),
+          currentPage: page,
+          next: this.getNextUrl(assignments.length, take, page),
           totalAssignment: assignments.length,
           assignments,
         },
@@ -412,10 +421,14 @@ export class ClassroomService {
 
   async getCreatedAssignments(
     classroomID: string,
+    page: number,
+    take: number,
   ): Promise<AssignmentEntity[]> {
     try {
       const assignments: AssignmentEntity[] =
         await this.prismaService.assignments.findMany({
+          skip: (page - 1) * take,
+          take,
           where: {
             classroomID,
           },
