@@ -18,7 +18,7 @@ import {
   UpdateCreatedAssignmentResponse,
 } from './interface';
 import {
-  CreatedAssignmentEntity,
+  AssignmentEntity,
   ClassroomCreatedEntity,
   DetailClassroomEntity,
 } from './entity';
@@ -26,6 +26,7 @@ import { Role } from './enums';
 import { CreatedAssignmentResponse } from './interface';
 import * as fs from 'fs';
 import { join } from 'path';
+
 @Injectable()
 export class ClassroomService {
   private banner: string;
@@ -164,11 +165,11 @@ export class ClassroomService {
         .$queryRaw`SELECT 
         classroom.*,
         (SELECT COUNT(*) FROM classroom_participants WHERE classroom_participants.classroomID = ${classroomID}) as totalParticipant,
-        (SELECT COUNT(*) FROM quiz WHERE quiz.classID = classroom.id) as totalQuiz,
-        (SELECT COUNT(*) FROM assignments WHERE assignments.classID = ${classroomID} ) as totalAssignment,
+        (SELECT COUNT(*) FROM quiz WHERE quiz.classroomID = classroom.id) as totalQuiz,
+        (SELECT COUNT(*) FROM assignments WHERE assignments.classroomID = ${classroomID} ) as totalAssignment,
         (SELECT COUNT(*) FROM materials WHERE materials.classroomID = ${classroomID} ) as totalMaterial,
-        ((SELECT COUNT(*) FROM user_assignments WHERE user_assignments.assignmentID IN (SELECT id FROM assignments WHERE classID = ${classroomID})) / (SELECT COUNT(*) FROM classroom_participants WHERE classroom_participants.classroomID = ${classroomID}) * 100) AS totalSubmitedAssignment,
-        ((SELECT COUNT(*) FROM quiz_results WHERE quiz_results.quizID IN (SELECT id FROM quiz WHERE classID = ${classroomID})) / (SELECT COUNT(*) FROM classroom_participants WHERE classroom_participants.classroomID = ${classroomID}) * 100) AS totalFinishedQuiz
+        ((SELECT COUNT(*) FROM user_assignments WHERE user_assignments.assignmentID IN (SELECT id FROM assignments WHERE classroomID = ${classroomID})) / (SELECT COUNT(*) FROM classroom_participants WHERE classroom_participants.classroomID = ${classroomID}) * 100) AS totalSubmitedAssignment,
+        ((SELECT COUNT(*) FROM quiz_results WHERE quiz_results.quizID IN (SELECT id FROM quiz WHERE classroomID = ${classroomID})) / (SELECT COUNT(*) FROM classroom_participants WHERE classroom_participants.classroomID = ${classroomID}) * 100) AS totalFinishedQuiz
       FROM classroom
       WHERE classroom.id = ${classroomID} AND classroom.userID = ${userID}`;
       if (!detailClassroom.length)
@@ -205,18 +206,13 @@ export class ClassroomService {
     classroomID: string,
   ): Promise<CreatedAssignmentResponse> {
     try {
-      const assignments: CreatedAssignmentEntity[] =
-        await this.prismaService.assignments.findMany({
-          where: {
-            classroomID: classroomID,
-          },
-        });
-
+      const assignments: AssignmentEntity[] =
+        await this.getCreatedAssignments(classroomID);
       return {
         status: 'success',
         message: 'Get created classroom assignments successfully',
         data: {
-          total: assignments.length,
+          totalAssignment: assignments.length,
           assignments,
         },
       };
@@ -236,20 +232,24 @@ export class ClassroomService {
   ): Promise<CreateAssignmentResponse> {
     const extensions = dto.extensions.join(',');
     try {
-      const assignment: CreatedAssignmentEntity =
+      const assignmentID: string = (
         await this.prismaService.assignments.create({
           data: {
             ...dto,
             classroomID,
             extensions,
           },
-        });
-      if (files.attachment) await this.createAttachments(files, assignment.id);
+          select: {
+            id: true,
+          },
+        })
+      ).id;
+      if (files.attachment) await this.createAttachments(files, assignmentID);
       return {
         status: 'success',
         message: 'Assignment created!',
         data: {
-          id: assignment.id,
+          id: assignmentID,
         },
       };
     } catch (error) {
@@ -333,7 +333,7 @@ export class ClassroomService {
       passGrade: dto.passGrade,
     };
     try {
-      const assignment: CreatedAssignmentEntity =
+      const assignmentId: string = (
         await this.prismaService.assignments.update({
           where: {
             id: assignmentID,
@@ -342,14 +342,18 @@ export class ClassroomService {
             ...assignmentDto,
             extensions: dto.extensions.join(','),
           },
-        });
+          select: {
+            id: true,
+          },
+        })
+      ).id;
       if (deleteAttachments) await this.deleteAttachments(deleteAttachments);
       if (files?.attachment) await this.createAttachments(files, assignmentID);
       return {
         status: 'success',
         message: 'Assignment successfully updated',
         data: {
-          id: assignment.id,
+          id: assignmentId,
         },
       };
     } catch (err) {
@@ -401,6 +405,25 @@ export class ClassroomService {
           });
         });
       }
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getCreatedAssignments(
+    classroomID: string,
+  ): Promise<AssignmentEntity[]> {
+    try {
+      const assignments: AssignmentEntity[] =
+        await this.prismaService.assignments.findMany({
+          where: {
+            classroomID,
+          },
+          include: {
+            attachments: true,
+          },
+        });
+      return assignments;
     } catch (error) {
       throw error;
     }

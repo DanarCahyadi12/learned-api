@@ -1,10 +1,10 @@
-import { CreatedAssignmentEntity } from '../entity';
+import { AssignmentEntity } from '../entity';
 
 export interface CreatedAssignmentResponse {
   status: string;
   message: string;
   data: {
-    total: number;
-    assignments: CreatedAssignmentEntity[];
+    totalAssignment: number;
+    assignments: AssignmentEntity[];
   };
 }

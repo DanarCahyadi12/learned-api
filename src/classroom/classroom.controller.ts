@@ -178,4 +178,10 @@ export class ClassroomController {
       files,
     );
   }
+
+  @UseGuards(TeacherGuard)
+  @Get('created/:id/assignments')
+  async getCreatedAssignments(@Param('id') classroomID: string) {
+    return await this.classroomService.getCreatedAssignments(classroomID);
+  }
 }
