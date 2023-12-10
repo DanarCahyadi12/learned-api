@@ -124,7 +124,7 @@ export class ClassroomService {
           currentPage: page,
           next: this.getNextUrl(totalClassroomCreated, take, page),
           items: {
-            totalClassroom: classroomsCreated.length,
+            totalClassroom: totalClassroomCreated,
             classrooms: classroomsCreated,
           },
         },
@@ -224,11 +224,14 @@ export class ClassroomService {
         status: 'success',
         message: 'Get created classroom assignments successfully',
         data: {
+          totalPage: Math.ceil(totalAssignment / take),
           prev: this.getPrevUrl(page, take),
           currentPage: page,
           next: this.getNextUrl(assignments.length, take, page),
-          totalAssignment,
-          assignments,
+          items: {
+            totalAssignment,
+            assignments,
+          },
         },
       };
     } catch (error) {

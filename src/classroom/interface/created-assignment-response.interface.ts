@@ -4,10 +4,13 @@ export interface CreatedAssignmentResponse {
   status: string;
   message: string;
   data: {
+    totalPage: number;
     prev: string | null;
     currentPage: number;
     next: string | null;
-    totalAssignment: number;
-    assignments: AssignmentEntity[];
+    items: {
+      totalAssignment: number;
+      assignments: AssignmentEntity[];
+    };
   };
 }

@@ -294,11 +294,14 @@ describe('ClassroomService', () => {
       status: 'success',
       message: 'Get created classroom assignments successfully',
       data: {
+        totalPage: 1,
         prev: null,
         currentPage: 1,
         next: null,
-        totalAssignment: 3,
-        assignments: assignmentsMock,
+        items: {
+          totalAssignment: 3,
+          assignments: assignmentsMock,
+        },
       },
     };
     const result: CreatedAssignmentResponse =
