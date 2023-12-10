@@ -3,7 +3,7 @@ import { ClassroomService } from './classroom.service';
 import { PrismaModule } from '../prisma/prisma.module';
 import { PrismaMock, prismaMock } from '../prisma/prisma.mock';
 import {
-  CreatedAssignmentEntity,
+  AssignmentEntity,
   ClassroomCreatedEntity,
   ClassroomEntity,
   ClassroomParticipantEntity,
@@ -215,7 +215,7 @@ describe('ClassroomService', () => {
   });
 
   it('Should return created classroom assigments', async () => {
-    const assignmentsMock: CreatedAssignmentEntity[] = [
+    const assignmentsMock: AssignmentEntity[] = [
       {
         id: '3271f3cd-dfae-4ae9-bed0-b9d9918deea6',
         title: 'assignment 1',
@@ -228,6 +228,16 @@ describe('ClassroomService', () => {
         updatedAt: new Date(),
         createdAt: new Date(),
         classroomID: 'edc2f366-f2c0-428b-8eca-2c1fe86efb02',
+        attachments: [
+          {
+            id: '3271f3cd-dfae-4ae9-bed',
+            attachmentURL:
+              'http://example.com/storages/teacher/attachments/test.pdf',
+            name: 'test.pdf',
+            assignmentID: '3271f3cd-dfae-4ae9-bed0-b9d9918deea6',
+            createdAt: new Date(),
+          },
+        ],
       },
       {
         id: '07177838-3ae8-4fc6-9982-623251c836b0',
@@ -241,6 +251,16 @@ describe('ClassroomService', () => {
         allowSeeGrade: false,
         updatedAt: new Date(),
         classroomID: 'edc2f366-f2c0-428b-8eca-2c1fe86efb02',
+        attachments: [
+          {
+            id: '07177838-3ae8-4fc6-s5',
+            attachmentURL:
+              'http://example.com/storages/teacher/attachments/test.pdf',
+            name: 'test.pdf',
+            assignmentID: '07177838-3ae8-4fc6-9982-623251c836b0',
+            createdAt: new Date(),
+          },
+        ],
       },
       {
         id: 'b31e3a8e-89d2-462e-9e4d-8bb4b04d634d',
@@ -254,6 +274,16 @@ describe('ClassroomService', () => {
         allowSeeGrade: false,
         updatedAt: new Date(),
         classroomID: 'edc2f366-f2c0-428b-8eca-2c1fe86efb02',
+        attachments: [
+          {
+            id: '07177838-3ae8-4fc6-s5-90sh',
+            attachmentURL:
+              'http://example.com/storages/teacher/attachments/test.pdf',
+            name: 'test.pdf',
+            assignmentID: 'b31e3a8e-89d2-462e-9e4d-8bb4b04d634d',
+            createdAt: new Date(),
+          },
+        ],
       },
     ];
 
@@ -264,48 +294,8 @@ describe('ClassroomService', () => {
       status: 'success',
       message: 'Get created classroom assignments successfully',
       data: {
-        total: 3,
-        assignments: [
-          {
-            id: '3271f3cd-dfae-4ae9-bed0-b9d9918deea6',
-            title: 'assignment 1',
-            description: null,
-            openedAt: new Date(),
-            closedAt: null,
-            passGrade: null,
-            extensions: '.jpg, .png',
-            allowSeeGrade: false,
-            updatedAt: new Date(),
-            createdAt: new Date(),
-            classroomID: 'edc2f366-f2c0-428b-8eca-2c1fe86efb02',
-          },
-          {
-            id: '07177838-3ae8-4fc6-9982-623251c836b0',
-            title: 'assignment 2',
-            description: null,
-            createdAt: new Date(),
-            openedAt: new Date(),
-            closedAt: null,
-            passGrade: null,
-            extensions: '.jpg, .png',
-            allowSeeGrade: false,
-            updatedAt: new Date(),
-            classroomID: 'edc2f366-f2c0-428b-8eca-2c1fe86efb02',
-          },
-          {
-            id: 'b31e3a8e-89d2-462e-9e4d-8bb4b04d634d',
-            title: 'assignment 3',
-            description: null,
-            createdAt: new Date(),
-            openedAt: new Date(),
-            closedAt: null,
-            passGrade: null,
-            extensions: '.jpg, .png',
-            allowSeeGrade: false,
-            updatedAt: new Date(),
-            classroomID: 'edc2f366-f2c0-428b-8eca-2c1fe86efb02',
-          },
-        ],
+        totalAssignment: 3,
+        assignments: assignmentsMock,
       },
     };
     const result: CreatedAssignmentResponse =
