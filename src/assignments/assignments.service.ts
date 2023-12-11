@@ -25,25 +25,34 @@ export class AssignmentsService {
     take: number,
   ): Promise<GetAssignmentResponse> {
     try {
-      const assignments: AssignmentEntity[] = await this.getCreatedAssignments(
-        classroomID,
-        page,
-        take,
-      );
+      const assignments: AssignmentEntity[] =
+        await this.prismaService.assignments.findMany({
+          skip: (page - 1) * take,
+          take,
+          where: {
+            classroomID,
+          },
+          include: {
+            attachments: true,
+          },
+        });
+
       const totalAssignment: number =
         await this.prismaService.assignments.count({
           where: {
             classroomID,
           },
         });
+      const totalPage: number = Math.ceil(totalAssignment / take);
+      console.log(totalAssignment);
       return {
         status: 'success',
         message: 'Get created classroom assignments successfully',
         data: {
-          totalPage: Math.ceil(totalAssignment / take),
+          totalPage,
           prev: getPrevUrl(page, take),
           currentPage: page,
-          next: getNextUrl(assignments.length, take, page),
+          next: getNextUrl(totalPage, take, page),
           items: {
             totalAssignment,
             assignments,
@@ -56,28 +65,6 @@ export class AssignmentsService {
         ['Error while get created classroom assignments'],
         { cause: error, description: error },
       );
-    }
-  }
-  async getCreatedAssignments(
-    classroomID: string,
-    page: number,
-    take: number,
-  ): Promise<AssignmentEntity[]> {
-    try {
-      const assignments: AssignmentEntity[] =
-        await this.prismaService.assignments.findMany({
-          skip: (page - 1) * take,
-          take,
-          where: {
-            classroomID,
-          },
-          include: {
-            attachments: true,
-          },
-        });
-      return assignments;
-    } catch (error) {
-      throw error;
     }
   }
 
