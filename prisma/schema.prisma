@@ -165,7 +165,9 @@ model assignments {
 
 model assignment_attachments {
   id String @id @default(uuid())
-  attachmentURL String 
+  path String
+  attachmentURL String
+  name String @db.VarChar(255)
   createdAt DateTime @default(now())
   assignments assignments @relation(fields: [assignmentID], references: [id], onDelete: Cascade, onUpdate: Cascade)
   assignmentID String
@@ -198,7 +200,7 @@ model assignment_graded {
 
 model materials {
   id String @id @default(uuid())
-
+  title String
   description String? @db.MediumText
   updatedAt DateTime @default(now())
   classroom classroom @relation(fields: [classroomID],references: [id], onDelete: Cascade, onUpdate: Cascade)
