@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { InternalServerErrorException } from '@nestjs/common';
-import { AssignmentEntity } from './enitity';
+import { AssignmentEntity, AttachmentEntity } from './enitity';
 import {
   CreateAssignmentDto,
   UpdateAssignmentDto,
@@ -133,15 +133,19 @@ export class AssignmentsService {
           'teacher',
           'attachments',
           time.toString(),
+          attachment.originalname,
         );
-        this.moveAttachment(attachment, destinationPath);
+        this.moveAttachment(attachment.buffer, destinationPath);
         const attachmentURL: string = `${
-          process.env.STORAGE_URL
-        }/teacher/attachments/${time.toString()}/${attachment.originalname}`;
+          process.env.BASE_URL
+        }/storages/teacher/attachments/${time.toString()}/${
+          attachment.originalname
+        }`;
         attachmentsData.push({
           name: attachment.originalname,
           attachmentURL,
           assignmentID,
+          path: `${destinationPath}`,
         });
       });
       await this.prismaService.assignment_attachments.createMany({
@@ -152,23 +156,19 @@ export class AssignmentsService {
       throw error;
     }
   }
-  moveAttachment(attachment: Express.Multer.File, destPath: string): void {
-    const bufferFile = Buffer.from(attachment.buffer);
+  moveAttachment(buffer: Buffer, destPath: string): void {
+    const bufferFile = Buffer.from(buffer);
     if (!fs.existsSync(destPath)) {
       fs.mkdirSync(destPath);
-      fs.writeFile(`${destPath}/${attachment.originalname}`, '', (err: any) => {
+      fs.writeFile(`${destPath}`, '', (err: any) => {
         if (err) throw err;
         console.log('File created!');
       });
     }
-    fs.writeFile(
-      `${destPath}/${attachment.originalname}`,
-      bufferFile,
-      (err) => {
-        if (err) throw err;
-        console.log('Attachment moved!');
-      },
-    );
+    fs.writeFile(`${destPath}`, bufferFile, (err) => {
+      if (err) throw err;
+      console.log('Attachment moved!');
+    });
   }
 
   async updateAssignment(
@@ -176,9 +176,6 @@ export class AssignmentsService {
     dto: UpdateAssignmentDto,
     files: { attachment: Express.Multer.File[] },
   ): Promise<UpdateAssignmentResponse> {
-    console.log(files);
-    const deleteAttachments: DeleteAttachmentDto[] | undefined =
-      dto?.deleteAttachments;
     const assignmentDto = {
       title: dto.title,
       description: dto.description,
@@ -189,6 +186,8 @@ export class AssignmentsService {
       passGrade: dto.passGrade,
     };
     try {
+      if (dto?.deleteAttachments)
+        await this.deleteAttachments(dto.deleteAttachments, assignmentID);
       const assignmentId: string = (
         await this.prismaService.assignments.update({
           where: {
@@ -203,7 +202,6 @@ export class AssignmentsService {
           },
         })
       ).id;
-      if (deleteAttachments) await this.deleteAttachments(deleteAttachments);
       if (files?.attachment) await this.createAttachments(files, assignmentID);
       return {
         status: 'success',
@@ -214,6 +212,8 @@ export class AssignmentsService {
       };
     } catch (err) {
       console.log(err);
+      if (err?.meta?.cause === 'Record to update not found.')
+        throw new BadRequestException(['Assignment or attachments not found']);
       throw new InternalServerErrorException(
         ['Error while updating assignment'],
         { cause: err, description: err },
@@ -221,41 +221,58 @@ export class AssignmentsService {
     }
   }
 
-  async deleteAttachments(attachments: DeleteAttachmentDto[]): Promise<void> {
-    const attachmentIDs: string[] = attachments.map((attachment) => {
+  async deleteAttachments(
+    dto: DeleteAttachmentDto[],
+    assignmentID: string,
+  ): Promise<void> {
+    const attachmentIDs: string[] = dto.map((attachment) => {
       return attachment.id;
     });
-    attachments.forEach((attachment) => {
-      this.deleteAttachmentFile(attachment.url);
+    console.log(attachmentIDs);
+    const attachments: AttachmentEntity[] =
+      await this.prismaService.assignment_attachments.findMany({
+        where: {
+          AND: {
+            assignmentID: assignmentID,
+          },
+          id: {
+            in: [...attachmentIDs],
+          },
+        },
+      });
+    if (attachments?.length) {
+      attachments.forEach((attachment) => {
+        this.deleteAttachmentFile(attachment.path);
+      });
+    }
+    await this.prismaService.assignment_attachments.deleteMany({
+      where: {
+        AND: {
+          assignmentID,
+        },
+        id: {
+          in: [...attachmentIDs],
+        },
+      },
     });
-    await this.prismaService
-      .$executeRaw`DELETE FROM assignment_attachments WHERE id IN (${attachmentIDs.join(
-      ',',
-    )})`;
+
     try {
     } catch (error) {
       throw error;
     }
   }
 
-  deleteAttachmentFile(url: string): void {
-    const path: string[] = url.split('/').splice(3, url.split('/').length);
-    const attachmentDir: string = join(
-      __dirname,
-      '..',
-      '..',
-      'storages',
-      'teacher',
-      'attachments',
-      path[3],
-    );
-    const attachmentPath: string = join(__dirname, '..', '..', ...path);
+  deleteAttachmentFile(path: string): void {
     try {
-      if (fs.existsSync(attachmentDir)) {
-        fs.rm(attachmentPath, (err) => {
+      if (fs.existsSync(path)) {
+        fs.rm(path, (err) => {
           if (err) throw err;
           console.log('Attachment file deleted');
-          fs.rmdir(attachmentDir, (err) => {
+          const dir: string = path
+            .split('\\')
+            .splice(0, path.split('\\').length - 1)
+            .join('\\');
+          fs.rmdir(dir, (err) => {
             if (err) throw err;
             console.log('Attachment folder deleted!');
           });
