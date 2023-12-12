@@ -144,7 +144,12 @@ export class AuthService {
     res: Response,
   ): Promise<AuthResponse> {
     this.user = await this.userService.findOneByEmail(payload.email);
-    if (!this.user) this.user = await this.userService.createUser(payload);
+    const userPayload = {
+      name: payload.name,
+      email: payload.email,
+      avatarURL: payload.pictureURL,
+    };
+    if (!this.user) this.user = await this.userService.createUser(userPayload);
 
     const tokens: string[] = await Promise.all([
       this.generateRefreshToken(this.user.id),
