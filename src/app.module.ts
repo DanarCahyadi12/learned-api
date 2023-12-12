@@ -10,6 +10,10 @@ import { SetPasswordModule } from './set-password/set-password.module';
 import { ForgotPasswordModule } from './forgot-password/forgot-password.module';
 import { ClassroomModule } from './classroom/classroom.module';
 import { ProfileModule } from './profile/profile.module';
+import { MaterialsModule } from './materials/materials.module';
+import { AssignmentsModule } from './assignments/assignments.module';
+import { StoragesModule } from './storages/storages.module';
+
 const ENV = process.env.NODE_ENV;
 @Module({
   imports: [
@@ -28,6 +32,9 @@ const ENV = process.env.NODE_ENV;
     ForgotPasswordModule,
     ClassroomModule,
     ProfileModule,
+    MaterialsModule,
+    AssignmentsModule,
+    StoragesModule,
   ],
 })
 export class AppModule {}
