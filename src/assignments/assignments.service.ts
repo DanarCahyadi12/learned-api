@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { InternalServerErrorException } from '@nestjs/common';
-import { AssignmentEntity, AttachmentEntity } from './enitity';
+import { AssignmentEntity, AttachmentEntity } from './entity';
 import {
   CreateAssignmentDto,
   UpdateAssignmentDto,

@@ -1,4 +1,4 @@
-import { AssignmentEntity } from '../enitity';
+import { AssignmentEntity } from '../entity';
 export interface GetAssignmentResponse {
   status: string;
   message: string;

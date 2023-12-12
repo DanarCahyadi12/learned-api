@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AssignmentsService } from './assignments.service';
-import { AssignmentEntity } from './enitity';
+import { AssignmentEntity } from './entity';
 import { PrismaMock, prismaMock } from '../prisma/prisma.mock';
 import { GetAssignmentResponse } from './interfaces';
 import { PrismaModule } from '../prisma/prisma.module';
