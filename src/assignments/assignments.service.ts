@@ -87,6 +87,7 @@ export class AssignmentsService {
           },
         })
       ).id;
+      console.log(files);
       if (files.attachment) await this.createAttachments(files, assignmentID);
       return {
         status: 'success',
@@ -122,6 +123,17 @@ export class AssignmentsService {
           time.toString(),
           attachment.originalname,
         );
+        fs.mkdirSync(
+          join(
+            __dirname,
+            '..',
+            '..',
+            'storages',
+            'teacher',
+            'attachments',
+            time.toString(),
+          ),
+        );
         this.moveAttachment(attachment.buffer, destinationPath);
         const attachmentURL: string = `${
           process.env.BASE_URL
@@ -144,18 +156,10 @@ export class AssignmentsService {
     }
   }
   moveAttachment(buffer: Buffer, destPath: string): void {
-    const bufferFile = Buffer.from(buffer);
-    if (!fs.existsSync(destPath)) {
-      fs.mkdirSync(destPath);
-      fs.writeFile(`${destPath}`, '', (err: any) => {
-        if (err) throw err;
-        console.log('File created!');
-        fs.writeFile(`${destPath}`, bufferFile, (err) => {
-          if (err) throw err;
-          console.log('Attachment moved!');
-        });
-      });
-    }
+    fs.writeFile(`${destPath}`, buffer, (err: any) => {
+      if (err) throw err;
+      console.log('File created!');
+    });
   }
 
   async updateAssignment(
@@ -215,7 +219,6 @@ export class AssignmentsService {
     const attachmentIDs: string[] = dto.map((attachment) => {
       return attachment.id;
     });
-    console.log(attachmentIDs);
     const attachments: AttachmentEntity[] =
       await this.prismaService.assignment_attachments.findMany({
         where: {
