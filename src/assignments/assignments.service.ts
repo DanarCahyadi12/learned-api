@@ -150,12 +150,12 @@ export class AssignmentsService {
       fs.writeFile(`${destPath}`, '', (err: any) => {
         if (err) throw err;
         console.log('File created!');
+        fs.writeFile(`${destPath}`, bufferFile, (err) => {
+          if (err) throw err;
+          console.log('Attachment moved!');
+        });
       });
     }
-    fs.writeFile(`${destPath}`, bufferFile, (err) => {
-      if (err) throw err;
-      console.log('Attachment moved!');
-    });
   }
 
   async updateAssignment(
