@@ -15,6 +15,7 @@ import {
 import { getPrevUrl, getNextUrl } from '../utils';
 import { join } from 'path';
 import * as fs from 'fs';
+import * as crypto from 'crypto';
 @Injectable()
 export class AssignmentsService {
   constructor(private prismaService: PrismaService) {}
@@ -44,7 +45,6 @@ export class AssignmentsService {
           },
         });
       const totalPage: number = Math.ceil(totalAssignment / take);
-      console.log(totalAssignment);
       return {
         status: 'success',
         message: 'Get created classroom assignments successfully',
@@ -87,8 +87,8 @@ export class AssignmentsService {
           },
         })
       ).id;
-      console.log(files);
-      if (files.attachment) await this.createAttachments(files, assignmentID);
+
+      if (files?.attachment) await this.createAttachments(files, assignmentID);
       return {
         status: 'success',
         message: 'Assignment created!',
@@ -112,7 +112,7 @@ export class AssignmentsService {
 
     try {
       files.attachment.forEach((attachment) => {
-        const time = new Date().getTime();
+        const randomFolderName: string = crypto.randomBytes(16).toString('hex');
         const destinationPath = join(
           __dirname,
           '..',
@@ -120,31 +120,19 @@ export class AssignmentsService {
           'storages',
           'teacher',
           'attachments',
-          time.toString(),
+          randomFolderName,
+        );
+        this.moveAttachment(
+          attachment.buffer,
+          destinationPath,
           attachment.originalname,
         );
-        fs.mkdirSync(
-          join(
-            __dirname,
-            '..',
-            '..',
-            'storages',
-            'teacher',
-            'attachments',
-            time.toString(),
-          ),
-        );
-        this.moveAttachment(attachment.buffer, destinationPath);
-        const attachmentURL: string = `${
-          process.env.BASE_URL
-        }/storages/teacher/attachments/${time.toString()}/${
-          attachment.originalname
-        }`;
+        const attachmentURL: string = `${process.env.BASE_URL}/storages/teacher/attachments/${randomFolderName}/${attachment.originalname}`;
         attachmentsData.push({
           name: attachment.originalname,
           attachmentURL,
           assignmentID,
-          path: `${destinationPath}`,
+          path: `${destinationPath}\\${attachment.originalname}`,
         });
       });
       await this.prismaService.assignment_attachments.createMany({
@@ -155,10 +143,14 @@ export class AssignmentsService {
       throw error;
     }
   }
-  moveAttachment(buffer: Buffer, destPath: string): void {
-    fs.writeFile(`${destPath}`, buffer, (err: any) => {
+  moveAttachment(buffer: Buffer, destPath: string, filename: string): void {
+    fs.mkdir(`${destPath}`, (err) => {
       if (err) throw err;
-      console.log('File created!');
+      console.log('Directory created');
+      fs.writeFile(`${destPath}\\${filename}`, buffer, (err: any) => {
+        if (err) throw err;
+        console.log('File created!');
+      });
     });
   }
 
