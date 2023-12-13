@@ -213,5 +213,6 @@ model material_files {
   materials materials @relation(fields: [materialID], references: [id], onDelete: Cascade, onUpdate: Cascade)
   materialID String
   materialURL String  
+  path String
   createdAt DateTime @default(now())
 }
