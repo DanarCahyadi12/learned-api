@@ -27,12 +27,14 @@ import { UseGuards } from '@nestjs/common';
 import { TeacherGuard } from './guards';
 import { CreateMaterialDto } from '../materials/DTOs';
 import { AssignmentsService } from '../assignments/assignments.service';
+import { MaterialsService } from '../materials/materials.service';
 
 @Controller('classroom')
 export class ClassroomController {
   constructor(
     private readonly classroomService: ClassroomService,
     private readonly assignmentsService: AssignmentsService,
+    private readonly materialsService: MaterialsService,
   ) {}
 
   @Post()
@@ -186,5 +188,45 @@ export class ClassroomController {
       take,
     );
     return result;
+  }
+
+  @UseGuards(TeacherGuard)
+  @UseInterceptors(
+    FileFieldsInterceptor(
+      [
+        {
+          name: 'materials',
+        },
+      ],
+      {
+        limits: {
+          fileSize: 1024 * 1024 * 10,
+        },
+        fileFilter(_, file: any, callback: any) {
+          if (!file.mimetype.match(/\/(jpg|jpeg|png|pdf|docx|xlxs|ppt)$/)) {
+            return callback(
+              new BadRequestException([
+                'Extension must be .png, .jpg, .jpeg, .docx, .xlsx, .ppt',
+              ]),
+              false,
+            );
+          }
+          callback(null, true);
+        },
+      },
+    ),
+  )
+  @Post('created/:id/materials')
+  async createMaterial(
+    @Param('id') classroomID: string,
+    @Body() dto: CreateMaterialDto,
+    @UploadedFiles() files: { materials: Express.Multer.File[] },
+  ) {
+    console.log(files);
+    return await this.materialsService.createMaterials(
+      classroomID,
+      dto,
+      files?.materials,
+    );
   }
 }
