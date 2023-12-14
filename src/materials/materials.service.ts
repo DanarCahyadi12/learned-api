@@ -1,10 +1,12 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateMaterialDto } from './DTOs';
-import { CreateMaterialResponse } from './interfaces';
+import { CreateMaterialResponse, GetMaterialResponse } from './interfaces';
 import { join } from 'path';
 import * as fs from 'fs';
 import * as crypto from 'crypto';
+import { MaterialsEntity } from './entity';
+import { getNextUrl, getPrevUrl } from '../utils';
 
 @Injectable()
 export class MaterialsService {
@@ -82,5 +84,49 @@ export class MaterialsService {
         if (err) throw err;
       });
     });
+  }
+
+  async getMaterials(
+    classroomID: string,
+    page: number,
+    take: number,
+  ): Promise<GetMaterialResponse> {
+    try {
+      const materials: MaterialsEntity[] =
+        await this.prismaService.materials.findMany({
+          where: {
+            classroomID,
+          },
+          include: {
+            material_files: true,
+          },
+        });
+      const totalMaterial: number = await this.prismaService.materials.count({
+        where: {
+          classroomID,
+        },
+      });
+      const totalPage: number = Math.ceil(totalMaterial / take);
+      return {
+        status: 'success',
+        message: 'Get materials successfully!',
+        data: {
+          totalPage,
+          prev: getPrevUrl(page, take),
+          currentPage: page,
+          next: getNextUrl(totalPage, take, page),
+          items: {
+            totalMaterial,
+            materials,
+          },
+        },
+      };
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException(['Error while get materials'], {
+        cause: error,
+        description: error,
+      });
+    }
   }
 }

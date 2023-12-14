@@ -229,4 +229,14 @@ export class ClassroomController {
       files?.materials,
     );
   }
+
+  @UseGuards(TeacherGuard)
+  @Get('created/:id/materials')
+  async getMaterials(
+    @Param('id') classroomID: string,
+    @Query('page', ParseIntPipe) page: number = 1,
+    @Query('take', ParseIntPipe) take: number = 50,
+  ) {
+    return await this.materialsService.getMaterials(classroomID, page, take);
+  }
 }
