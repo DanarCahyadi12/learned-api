@@ -78,10 +78,8 @@ export class MaterialsService {
   moveMaterialFiles(buffer: Buffer, path: string, filename: string): void {
     fs.mkdir(path, (err) => {
       if (err) throw err;
-      console.log('Directory created');
       fs.writeFile(`${path}\\${filename}`, buffer, (err) => {
         if (err) throw err;
-        console.log('File created');
       });
     });
   }
