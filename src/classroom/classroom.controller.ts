@@ -222,7 +222,6 @@ export class ClassroomController {
     @Body() dto: CreateMaterialDto,
     @UploadedFiles() files: { materials: Express.Multer.File[] },
   ) {
-    console.log(files);
     return await this.materialsService.createMaterials(
       classroomID,
       dto,
