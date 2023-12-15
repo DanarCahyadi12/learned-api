@@ -1,5 +1,5 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
 export class AttachmentGuard implements CanActivate {
@@ -9,7 +9,6 @@ export class AttachmentGuard implements CanActivate {
     const attachmentURL: string = `${process.env.BASE_URL}${url
       .split('%20')
       .join(' ')}`;
-    console.log(attachmentURL);
     const { sub } = user;
     const isUserExits =
       await this.prismaService.assignment_attachments.findFirst({
