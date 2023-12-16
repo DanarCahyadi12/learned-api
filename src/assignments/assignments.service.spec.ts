@@ -129,15 +129,10 @@ describe('AssignmentsService', () => {
   });
 
   it('Should deleted file and not throw an error', () => {
-    try {
+    expect(
       service.deleteAttachmentFile(
         'http://localhost:3000/storages/teacher/attachments/1702095715631/tgs b indo 3.14 dan 4. 14 Sintya Kumara.pdf',
-      );
-    } catch (error) {
-      if (error) {
-        console.log(error);
-        expect(error).toBeUndefined();
-      }
-    }
+      ),
+    ).toBeUndefined();
   });
 });

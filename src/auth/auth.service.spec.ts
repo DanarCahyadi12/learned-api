@@ -2,8 +2,8 @@ import { AuthService } from './auth.service';
 import { UserService } from '../user/user.service';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
-import { MailService } from 'src/mail/mail.service';
-import { GoogleOauthService } from 'src/google-oauth/google-oauth.service';
+import { MailService } from '../mail/mail.service';
+import { GoogleOauthService } from '../google-oauth/google-oauth.service';
 describe('AuthService', () => {
   let service: AuthService;
 

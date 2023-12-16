@@ -5,12 +5,14 @@ import { prismaMock } from '../prisma/prisma.mock';
 import * as crypto from 'crypto';
 import { SendMailResponse } from './interfaces';
 import { SetPasswordModule } from '../set-password/set-password.module';
+import { MailModule } from '../mail/mail.module';
+import { UserModule } from '../user/user.module';
 describe('ForgotPasswordService', () => {
   let service: ForgotPasswordService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [SetPasswordModule],
+      imports: [SetPasswordModule, MailModule, UserModule],
       providers: [ForgotPasswordService],
     }).compile();
 
