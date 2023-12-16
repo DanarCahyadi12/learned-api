@@ -5,5 +5,5 @@ export interface ClassroomCreatedEntity {
   code: string;
   createdAt: Date;
   updatedAt: Date;
-  totalParticipant: number;
+  totalParticipant?: number;
 }

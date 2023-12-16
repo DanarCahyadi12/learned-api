@@ -1,16 +1,18 @@
 import {
+  BadRequestException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateClassroomDto } from './DTOs';
+import { CreateClassroomDto, JoinClassroomDto } from './DTOs';
 import {
   ClassroomCreatedResponse,
   CreateClassroomResponse,
   DetailClassroomResponse,
+  JoinClassroomResponse,
 } from './interfaces';
-import { ClassroomCreatedEntity, DetailClassroomEntity } from './entity';
+import { ClassroomCreatedEntity } from './entity';
 import { Role } from './enums';
 import { getNextUrl, getPrevUrl } from '../utils';
 
@@ -102,14 +104,15 @@ export class ClassroomService {
             userID: id,
           },
         });
+      const totalPage: number = Math.ceil(totalClassroomCreated / take);
       const response: ClassroomCreatedResponse = {
         status: 'success',
         message: 'Get created classroom successfully!',
         data: {
-          totalPage: Math.ceil(totalClassroomCreated / take),
+          totalPage,
           prev: getPrevUrl(page, take),
           currentPage: page,
-          next: getNextUrl(totalClassroomCreated, take, page),
+          next: getNextUrl(totalPage, take, page),
           items: {
             totalClassroom: totalClassroomCreated,
             classrooms: classroomsCreated,
@@ -127,42 +130,76 @@ export class ClassroomService {
   }
 
   async getDetailCreatedClassroom(
-    userID: string,
     classroomID: string,
   ): Promise<DetailClassroomResponse> {
     try {
-      let detailClassroom: DetailClassroomEntity = await this.prismaService
-        .$queryRaw`SELECT 
-        classroom.*,
-        (SELECT COUNT(*) FROM classroom_participants WHERE classroom_participants.classroomID = ${classroomID}) as totalParticipant,
-        (SELECT COUNT(*) FROM quiz WHERE quiz.classroomID = classroom.id) as totalQuiz,
-        (SELECT COUNT(*) FROM assignments WHERE assignments.classroomID = ${classroomID} ) as totalAssignment,
-        (SELECT COUNT(*) FROM materials WHERE materials.classroomID = ${classroomID} ) as totalMaterial,
-        ((SELECT COUNT(*) FROM user_assignments WHERE user_assignments.assignmentID IN (SELECT id FROM assignments WHERE classroomID = ${classroomID})) / (SELECT COUNT(*) FROM classroom_participants WHERE classroom_participants.classroomID = ${classroomID}) * 100) AS totalSubmitedAssignment,
-        ((SELECT COUNT(*) FROM quiz_results WHERE quiz_results.quizID IN (SELECT id FROM quiz WHERE classroomID = ${classroomID})) / (SELECT COUNT(*) FROM classroom_participants WHERE classroom_participants.classroomID = ${classroomID}) * 100) AS totalFinishedQuiz
-      FROM classroom
-      WHERE classroom.id = ${classroomID} AND classroom.userID = ${userID}`;
-      console.log(detailClassroom);
+      const detailClassroom = await this.prismaService.classroom.findUnique({
+        where: {
+          id: classroomID,
+        },
+        select: {
+          _count: {
+            select: {
+              userJoined: true,
+              assignments: true,
+              materials: true,
+              quiz: true,
+            },
+          },
+          assignments: {
+            select: {
+              _count: {
+                select: {
+                  users: true,
+                },
+              },
+            },
+          },
+          quiz: {
+            select: {
+              _count: {
+                select: {
+                  quizResult: true,
+                },
+              },
+            },
+          },
+          id: true,
+          code: true,
+          name: true,
+          description: true,
+          bannerURL: true,
+          createdAt: true,
+          updatedAt: true,
+          userID: true,
+        },
+      });
+      const response: DetailClassroomResponse = {
+        status: 'success',
+        message: 'Get detail classroom successfully',
+        data: {
+          id: detailClassroom.id,
+          code: detailClassroom.code,
+          name: detailClassroom.name,
+          description: detailClassroom.description,
+          bannerURL: detailClassroom.bannerURL,
+          createdAt: detailClassroom.createdAt,
+          updatedAt: detailClassroom.updatedAt,
+          userID: detailClassroom.userID,
+          total: {
+            assignment: detailClassroom._count.assignments,
+            participant: detailClassroom._count.userJoined,
+            material: detailClassroom._count.materials,
+            quiz: detailClassroom._count.quiz,
+            submitedAssignment:
+              detailClassroom.assignments[0]._count?.users ?? 0,
+            finishedQuiz: detailClassroom.quiz[0]._count.quizResult ?? 0,
+          },
+        },
+      };
       if (!detailClassroom)
         throw new NotFoundException(['Classroom not found!']);
-
-      //convert total field from big int to integer
-      detailClassroom = {
-        ...detailClassroom,
-        totalParticipant: Number(detailClassroom.totalParticipant),
-        totalAssignment: Number(detailClassroom.totalAssignment),
-        totalMaterial: Number(detailClassroom.totalMaterial),
-        totalSubmitedAssignment: Number(
-          detailClassroom.totalSubmitedAssignment,
-        ),
-        totalFinishedQuiz: Number(detailClassroom.totalFinishedQuiz),
-        totalQuiz: Number(detailClassroom.totalQuiz),
-      };
-      return {
-        status: 'success',
-        message: 'Get detail classroom successfully!',
-        data: { ...detailClassroom },
-      };
+      return response;
     } catch (error) {
       console.log(error);
       if (error instanceof NotFoundException) throw error;
@@ -170,6 +207,64 @@ export class ClassroomService {
         ['Something error while get detail classroom'],
         { cause: error, description: error },
       );
+    }
+  }
+
+  async joinClassroom(
+    classroomID: string,
+    userID: string,
+    dto: JoinClassroomDto,
+  ): Promise<JoinClassroomResponse> {
+    try {
+      const classroom: ClassroomCreatedEntity =
+        await this.prismaService.classroom.findUnique({
+          where: {
+            code: dto.code,
+          },
+        });
+      await this.validateJoinClassroom(userID, classroomID, classroom);
+      const classroomParticipant =
+        await this.prismaService.classroom_participants.create({
+          data: {
+            classroomID,
+            userID,
+            role: Role.STUDENT,
+          },
+        });
+      return {
+        status: 'success',
+        message: 'Joining classroom successfully',
+        data: {
+          id: classroomParticipant.id,
+        },
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+      if (error instanceof BadRequestException) throw error;
+      console.log(error);
+      throw new InternalServerErrorException(
+        ['Error while joining classroom'],
+        { cause: error, description: error },
+      );
+    }
+  }
+
+  async validateJoinClassroom(
+    userID: string,
+    classroomID: string,
+    classroom: ClassroomCreatedEntity | undefined,
+  ): Promise<void> {
+    try {
+      if (!classroom) throw new NotFoundException(['Classroom not found']);
+      const user = await this.prismaService.classroom_participants.findFirst({
+        where: {
+          AND: [{ userID }, { classroomID }],
+        },
+      });
+      if (user)
+        throw new BadRequestException(['You already joined this classroom']);
+    } catch (error) {
+      throw error;
     }
   }
 }

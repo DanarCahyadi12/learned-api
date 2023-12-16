@@ -7,10 +7,4 @@ export interface DetailClassroomEntity {
   createdAt: Date;
   updatedAt: Date;
   userID: string;
-  totalParticipant: number;
-  totalAssignment: number;
-  totalMaterial: number;
-  totalQuiz: number;
-  totalSubmitedAssignment: number;
-  totalFinishedQuiz: number;
 }

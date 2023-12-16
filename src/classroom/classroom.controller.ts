@@ -13,7 +13,7 @@ import {
   Put,
 } from '@nestjs/common';
 import { ClassroomService } from './classroom.service';
-import { CreateClassroomDto } from './DTOs';
+import { CreateClassroomDto, JoinClassroomDto } from './DTOs';
 import { CreateAssignmentDto, UpdateAssignmentDto } from '../assignments/DTOs';
 import { User } from '../user/decorators';
 import {
@@ -21,7 +21,7 @@ import {
   FileInterceptor,
 } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
-import { getCurrentDate } from 'src/utils';
+import { getCurrentDate } from '../utils';
 import { extname } from 'path';
 import { UseGuards } from '@nestjs/common';
 import { TeacherGuard } from './guards';
@@ -75,7 +75,6 @@ export class ClassroomController {
     );
   }
 
-  @UseGuards(TeacherGuard)
   @Get('created')
   async getCreatedClassroom(
     @User() id: string,
@@ -85,16 +84,9 @@ export class ClassroomController {
     return await this.classroomService.getCreatedClassroom(id, page, take);
   }
 
-  @UseGuards(TeacherGuard)
   @Get('created/:id')
-  async getDetailCreatedClassroom(
-    @User() userID: string,
-    @Param('id') classroomID: string,
-  ) {
-    return await this.classroomService.getDetailCreatedClassroom(
-      userID,
-      classroomID,
-    );
+  async getDetailCreatedClassroom(@Param('id') classroomID: string) {
+    return await this.classroomService.getDetailCreatedClassroom(classroomID);
   }
 
   @UseGuards(TeacherGuard)
@@ -237,5 +229,14 @@ export class ClassroomController {
     @Query('take', ParseIntPipe) take: number = 50,
   ) {
     return await this.materialsService.getMaterials(classroomID, page, take);
+  }
+
+  @Post(':id/join')
+  async joinClassroom(
+    @User() userID: string,
+    @Body() dto: JoinClassroomDto,
+    @Param('id') classroomID: string,
+  ) {
+    return await this.classroomService.joinClassroom(classroomID, userID, dto);
   }
 }
