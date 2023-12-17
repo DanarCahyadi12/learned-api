@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { InternalServerErrorException } from '@nestjs/common';
 import { AssignmentEntity, AttachmentEntity } from './entity';
@@ -11,6 +15,7 @@ import {
   GetAssignmentResponse,
   CreateAssignmentResponse,
   UpdateAssignmentResponse,
+  GetDetailAssignmentResponse,
 } from './interfaces';
 import { getPrevUrl, getNextUrl } from '../utils';
 import { join } from 'path';
@@ -263,5 +268,40 @@ export class AssignmentsService {
     } catch (error) {
       throw error;
     }
+  }
+
+  async getDetailAssignment(
+    assignmentID: string,
+  ): Promise<GetDetailAssignmentResponse> {
+    try {
+      const assignment: AssignmentEntity =
+        await this.getDetailAssignmentById(assignmentID);
+      if (!assignment) throw new NotFoundException(['Assignment not found']);
+      return {
+        status: 'success',
+        message: 'Get detail assignment successfully',
+        data: assignment,
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+      console.log(error);
+      throw new InternalServerErrorException(
+        ['Error while getting assignment'],
+        { cause: error, description: error },
+      );
+    }
+  }
+
+  async getDetailAssignmentById(
+    assignmentID: string,
+  ): Promise<AssignmentEntity> {
+    return await this.prismaService.assignments.findUnique({
+      where: {
+        id: assignmentID,
+      },
+      include: {
+        attachments: true,
+      },
+    });
   }
 }

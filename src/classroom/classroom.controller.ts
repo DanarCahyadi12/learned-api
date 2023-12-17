@@ -230,7 +230,11 @@ export class ClassroomController {
   ) {
     return await this.materialsService.getMaterials(classroomID, page, take);
   }
-
+  @UseGuards(TeacherGuard)
+  @Get('created/:id/assignment/:assignmentID')
+  async getDetailAssignment(@Param('assignmentID') assignmentID: string) {
+    return await this.assignmentsService.getDetailAssignment(assignmentID);
+  }
   @Post(':id/join')
   async joinClassroom(
     @User() userID: string,
