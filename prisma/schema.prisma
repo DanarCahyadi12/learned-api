@@ -154,6 +154,7 @@ model assignments {
   closedAt DateTime? 
   passGrade Int?
   extensions String?
+  isClosed Boolean @default(false)
   allowSeeGrade Boolean @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
@@ -176,15 +177,23 @@ model assignment_attachments {
 
 model user_assignments {
   id String @id @default(uuid())
-  type String
   assignments assignments @relation(fields: [assignmentID], references: [id], onDelete: Cascade, onUpdate: Cascade)
   users users @relation(fields: [userID], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  assignmentURL String
   assignmentID String 
   userID String 
   submitedAt DateTime @default(now())
   overdue Boolean @default(false)
   assignmentGraded assignment_graded?
+  user_assignment_attachments user_assignment_attachments[]
+}
+
+model user_assignment_attachments {
+  id String @id @default(uuid())
+  type String 
+  user_assignments user_assignments @relation(fields: [userAssignmentID], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userAssignmentID String 
+  attachments String
+  createdAt DateTime @default(now())
 }
 
 
@@ -205,7 +214,7 @@ model materials {
   updatedAt DateTime @default(now())
   classroom classroom @relation(fields: [classroomID],references: [id], onDelete: Cascade, onUpdate: Cascade)
   classroomID String 
-  materials material_files[]
+  material_files material_files[]
 }
 
 model material_files {
