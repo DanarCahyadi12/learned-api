@@ -49,29 +49,29 @@ export class MaterialsService {
     materials: Express.Multer.File[],
   ): Promise<void> {
     const materialFiles = [];
-    materials.forEach((material) => {
-      const randomFolderName: string = crypto.randomBytes(16).toString('hex');
-      const path: string = join(
-        __dirname,
-        '..',
-        '..',
-        'storages',
-        'teacher',
-        'materials',
-        randomFolderName,
-      );
-      const materialURL: string = `${process.env.BASE_URL}/storages/teacher/materials/${randomFolderName}/${material.originalname}`;
-      this.moveMaterialFiles(material.buffer, path, material.originalname);
-      materialFiles.push({
-        materialID,
-        materialURL,
-        path: `${path}\\${material.originalname}`,
-      });
-    });
-    await this.prismaService.material_files.createMany({
-      data: materialFiles,
-    });
     try {
+      materials.forEach((material) => {
+        const randomFolderName: string = crypto.randomBytes(16).toString('hex');
+        const path: string = join(
+          __dirname,
+          '..',
+          '..',
+          'storages',
+          'teacher',
+          'materials',
+          randomFolderName,
+        );
+        const materialURL: string = `${process.env.BASE_URL}/storages/teacher/materials/${randomFolderName}/${material.originalname}`;
+        this.moveMaterialFiles(material.buffer, path, material.originalname);
+        materialFiles.push({
+          materialID,
+          materialURL,
+          path: `${path}\\${material.originalname}`,
+        });
+      });
+      await this.prismaService.material_files.createMany({
+        data: materialFiles,
+      });
     } catch (error) {
       throw error;
     }
