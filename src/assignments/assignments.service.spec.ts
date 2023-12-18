@@ -116,7 +116,7 @@ describe('AssignmentsService', () => {
     (prismaMock.assignments.count as jest.Mock).mockResolvedValue(3);
     const resultExpected: GetAssignmentResponse = {
       status: 'success',
-      message: 'Get created classroom assignments successfully',
+      message: 'Get classroom assignments successfully',
       data: {
         totalPage: 1,
         prev: null,
@@ -188,5 +188,14 @@ describe('AssignmentsService', () => {
     expect(async () => {
       await service.getDetailAssignment('invalid ID');
     }).rejects.toThrow(NotFoundException);
+  });
+
+  it('Should not throw an error while updating closed and opened assignments', async () => {
+    expect(async () => {
+      await service.updateOpenedAssignment();
+    }).resolves;
+    expect(async () => {
+      await service.updateClosedAssignment();
+    }).resolves;
   });
 });

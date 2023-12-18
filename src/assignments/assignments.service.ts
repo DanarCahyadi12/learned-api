@@ -31,6 +31,8 @@ export class AssignmentsService {
     take: number,
   ): Promise<GetAssignmentResponse> {
     try {
+      await this.updateClosedAssignment();
+      await this.updateOpenedAssignment();
       const assignments: AssignmentEntity[] = await this.findManyByClassroomID(
         classroomID,
         take,
@@ -45,7 +47,7 @@ export class AssignmentsService {
       const totalPage: number = Math.ceil(totalAssignment / take);
       return {
         status: 'success',
-        message: 'Get created classroom assignments successfully',
+        message: 'Get classroom assignments successfully',
         data: {
           totalPage,
           prev: getPrevUrl(page, take),
@@ -306,6 +308,32 @@ export class AssignmentsService {
       },
       include: {
         attachments: true,
+      },
+    });
+  }
+
+  async updateOpenedAssignment(): Promise<void> {
+    await this.prismaService.assignments.updateMany({
+      where: {
+        openedAt: {
+          lte: new Date(),
+        },
+      },
+      data: {
+        isOpen: true,
+      },
+    });
+  }
+
+  async updateClosedAssignment(): Promise<void> {
+    await this.prismaService.assignments.updateMany({
+      where: {
+        closedAt: {
+          lte: new Date(),
+        },
+      },
+      data: {
+        isClosed: true,
       },
     });
   }
