@@ -12,7 +12,7 @@ import {
   DetailClassroomResponse,
   JoinClassroomResponse,
 } from './interfaces';
-import { ClassroomCreatedEntity } from './entity';
+import { ClassroomCreatedEntity, ClassroomParticipantEntity } from './entity';
 import { Role } from './enums';
 import { getNextUrl, getPrevUrl } from '../utils';
 
@@ -266,5 +266,16 @@ export class ClassroomService {
     } catch (error) {
       throw error;
     }
+  }
+
+  async findOneClassroomParticipantByClassroomIdAndUserID(
+    classroomID: string,
+    userID: string,
+  ): Promise<ClassroomParticipantEntity> {
+    return await this.prismaService.classroom_participants.findFirst({
+      where: {
+        AND: [{ userID }, { classroomID }],
+      },
+    });
   }
 }

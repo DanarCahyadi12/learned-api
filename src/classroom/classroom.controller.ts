@@ -24,7 +24,7 @@ import { diskStorage } from 'multer';
 import { getCurrentDate } from '../utils';
 import { extname } from 'path';
 import { UseGuards } from '@nestjs/common';
-import { TeacherGuard } from './guards';
+import { ClassroomGuard, TeacherGuard } from './guards';
 import { CreateMaterialDto } from '../materials/DTOs';
 import { AssignmentsService } from '../assignments/assignments.service';
 import { MaterialsService } from '../materials/materials.service';
@@ -167,9 +167,9 @@ export class ClassroomController {
     );
   }
 
-  @UseGuards(TeacherGuard)
+  @UseGuards(ClassroomGuard)
   @Get('created/:id/assignments')
-  async getCreatedAssignments(
+  async getAssignments(
     @Param('id') classroomID: string,
     @Query('page', ParseIntPipe) page: number = 1,
     @Query('take', ParseIntPipe) take: number = 50,
@@ -221,7 +221,7 @@ export class ClassroomController {
     );
   }
 
-  @UseGuards(TeacherGuard)
+  @UseGuards(ClassroomGuard)
   @Get('created/:id/materials')
   async getMaterials(
     @Param('id') classroomID: string,
@@ -230,7 +230,6 @@ export class ClassroomController {
   ) {
     return await this.materialsService.getMaterials(classroomID, page, take);
   }
-  @UseGuards(TeacherGuard)
   @Get('created/:id/assignment/:assignmentID')
   async getDetailAssignment(@Param('assignmentID') assignmentID: string) {
     return await this.assignmentsService.getDetailAssignment(assignmentID);

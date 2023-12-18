@@ -275,4 +275,16 @@ describe('ClassroomService', () => {
 
     expect(expectedResult).toEqual(result);
   });
+
+  it('Should retrieve clasroom participant', async () => {
+    (
+      prismaMock.classroom_participants.findFirst as jest.Mock
+    ).mockResolvedValue(classroomParticipantMock);
+    const result =
+      await service.findOneClassroomParticipantByClassroomIdAndUserID(
+        'cf6e1502-01d8-4f51-901a-31b0be6a68a5',
+        '41c3fb5c-220e-4ae5-948c-3cd1ab7e84b6',
+      );
+    expect(result).toEqual(classroomParticipantMock);
+  });
 });
