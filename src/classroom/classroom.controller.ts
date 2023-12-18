@@ -168,7 +168,7 @@ export class ClassroomController {
   }
 
   @UseGuards(ClassroomGuard)
-  @Get('created/:id/assignments')
+  @Get(':id/assignments')
   async getAssignments(
     @Param('id') classroomID: string,
     @Query('page', ParseIntPipe) page: number = 1,
@@ -222,7 +222,7 @@ export class ClassroomController {
   }
 
   @UseGuards(ClassroomGuard)
-  @Get('created/:id/materials')
+  @Get(':id/materials')
   async getMaterials(
     @Param('id') classroomID: string,
     @Query('page', ParseIntPipe) page: number = 1,
