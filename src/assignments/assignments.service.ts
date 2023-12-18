@@ -274,8 +274,7 @@ export class AssignmentsService {
     assignmentID: string,
   ): Promise<GetDetailAssignmentResponse> {
     try {
-      const assignment: AssignmentEntity =
-        await this.getDetailAssignmentById(assignmentID);
+      const assignment: AssignmentEntity = await this.findOneById(assignmentID);
       if (!assignment) throw new NotFoundException(['Assignment not found']);
       return {
         status: 'success',
@@ -292,9 +291,7 @@ export class AssignmentsService {
     }
   }
 
-  async getDetailAssignmentById(
-    assignmentID: string,
-  ): Promise<AssignmentEntity> {
+  async findOneById(assignmentID: string): Promise<AssignmentEntity> {
     return await this.prismaService.assignments.findUnique({
       where: {
         id: assignmentID,
