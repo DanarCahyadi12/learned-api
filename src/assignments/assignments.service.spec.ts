@@ -103,7 +103,7 @@ describe('AssignmentsService', () => {
     expect(service).toBeDefined();
   });
 
-  it('Should return created classroom assigments', async () => {
+  it('Should return created classroom assigments and valid response', async () => {
     (prismaMock.assignments.findMany as jest.Mock).mockResolvedValue(
       assignmentsMock,
     );
@@ -130,6 +130,18 @@ describe('AssignmentsService', () => {
     expect(result).toEqual(resultExpected);
   });
 
+  it('Should return created assignments', async () => {
+    (prismaMock.assignments.findMany as jest.Mock).mockResolvedValue(
+      assignmentsMock,
+    );
+    const result: AssignmentEntity[] = await service.findManyByClassroomID(
+      'edc2f366-f2c0-428b-8eca-2c1fe86efb02',
+      1,
+      50,
+    );
+    expect(result).toEqual(assignmentsMock);
+  });
+
   it('Should deleted file and not throw an error', () => {
     expect(
       service.deleteAttachmentFile(
@@ -142,7 +154,7 @@ describe('AssignmentsService', () => {
     (prismaMock.assignments.findUnique as jest.Mock).mockResolvedValue(
       assignmentsMock[0],
     );
-    const result: AssignmentEntity = await service.getDetailAssignmentById(
+    const result: AssignmentEntity = await service.findOneById(
       assignmentsMock[0].id,
     );
     expect(result).toEqual(assignmentsMock[0]);
