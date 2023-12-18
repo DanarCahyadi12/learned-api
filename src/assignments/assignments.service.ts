@@ -31,18 +31,11 @@ export class AssignmentsService {
     take: number,
   ): Promise<GetAssignmentResponse> {
     try {
-      const assignments: AssignmentEntity[] =
-        await this.prismaService.assignments.findMany({
-          skip: (page - 1) * take,
-          take,
-          where: {
-            classroomID,
-          },
-          include: {
-            attachments: true,
-          },
-        });
-
+      const assignments: AssignmentEntity[] = await this.findManyByClassroomID(
+        classroomID,
+        take,
+        page,
+      );
       const totalAssignment: number =
         await this.prismaService.assignments.count({
           where: {
@@ -72,7 +65,22 @@ export class AssignmentsService {
       );
     }
   }
-
+  async findManyByClassroomID(
+    classroomID: string,
+    take: number,
+    page: number,
+  ): Promise<AssignmentEntity[]> {
+    return await this.prismaService.assignments.findMany({
+      skip: (page - 1) * take,
+      take,
+      where: {
+        classroomID,
+      },
+      include: {
+        attachments: true,
+      },
+    });
+  }
   async createAssignment(
     classroomID: string,
     files: { attachment: Express.Multer.File[] },
