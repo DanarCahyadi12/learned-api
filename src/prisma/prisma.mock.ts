@@ -29,13 +29,13 @@ export const PrismaMock = jest.fn(() => {
         findFirst: jest.fn(),
         findMany: jest.fn(),
         count: jest.fn(),
+        updateMany: jest.fn(),
       },
       classroom_participants: {
         create: jest.fn(),
         findUnique: jest.fn(),
         update: jest.fn(),
         findMany: jest.fn(),
-        aggregate: jest.fn(),
         findFirst: jest.fn(),
       },
       materials: {
@@ -48,6 +48,21 @@ export const PrismaMock = jest.fn(() => {
       material_files: {
         create: jest.fn(),
         createMany: jest.fn(),
+        findMany: jest.fn(),
+        findFirst: jest.fn(),
+      },
+      student_assignments: {
+        create: jest.fn(),
+        findUnique: jest.fn(),
+        update: jest.fn(),
+        findMany: jest.fn(),
+        findFirst: jest.fn(),
+      },
+      student_assignment_attachments: {
+        create: jest.fn(),
+        createMany: jest.fn(),
+        findUnique: jest.fn(),
+        update: jest.fn(),
         findMany: jest.fn(),
         findFirst: jest.fn(),
       },
