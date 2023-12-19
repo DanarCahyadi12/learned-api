@@ -14,7 +14,11 @@ import {
 } from '@nestjs/common';
 import { ClassroomService } from './classroom.service';
 import { CreateClassroomDto, JoinClassroomDto } from './DTOs';
-import { CreateAssignmentDto, UpdateAssignmentDto } from '../assignments/DTOs';
+import {
+  CreateAssignmentDto,
+  PostStudentAssignmentDto,
+  UpdateAssignmentDto,
+} from '../assignments/DTOs';
 import { User } from '../user/decorators';
 import {
   FileFieldsInterceptor,
@@ -24,7 +28,7 @@ import { diskStorage } from 'multer';
 import { getCurrentDate } from '../utils';
 import { extname } from 'path';
 import { UseGuards } from '@nestjs/common';
-import { ClassroomGuard, TeacherGuard } from './guards';
+import { ClassroomGuard, StudentGuard, TeacherGuard } from './guards';
 import { CreateMaterialDto } from '../materials/DTOs';
 import { AssignmentsService } from '../assignments/assignments.service';
 import { MaterialsService } from '../materials/materials.service';
@@ -241,5 +245,46 @@ export class ClassroomController {
     @Param('id') classroomID: string,
   ) {
     return await this.classroomService.joinClassroom(classroomID, userID, dto);
+  }
+
+  @UseGuards(StudentGuard)
+  @UseInterceptors(
+    FileFieldsInterceptor(
+      [
+        {
+          name: 'assignments',
+        },
+      ],
+      {
+        limits: {
+          fileSize: 1024 * 1024 * 10,
+        },
+        fileFilter(_, file: any, callback: any) {
+          if (!file.mimetype.match(/\/(jpg|jpeg|png|pdf|docx|xlxs|ppt)$/)) {
+            return callback(
+              new BadRequestException([
+                'Extension must be .png, .jpg, .jpeg, .docx, .xlsx, .ppt',
+              ]),
+              false,
+            );
+          }
+          callback(null, true);
+        },
+      },
+    ),
+  )
+  @Post(':id/student/assignment/:assignmentID')
+  async postAssignment(
+    @User() userID: string,
+    @Param('assignmentID') assignmentID: string,
+    @Body() dto: PostStudentAssignmentDto[],
+    @UploadedFiles() files: { assignments: Express.Multer.File[] },
+  ) {
+    return await this.assignmentsService.postStudentAssignment(
+      assignmentID,
+      userID,
+      dto,
+      files?.assignments,
+    );
   }
 }

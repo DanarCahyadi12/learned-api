@@ -5,9 +5,8 @@ export interface AssignmentEntity {
   title: string;
   description: string;
   isOpen: boolean;
-  isClosed: boolean;
   openedAt: Date;
-  closedAt: Date;
+  dueAt: Date;
   passGrade: number;
   allowSeeGrade: boolean;
   extensions: string;

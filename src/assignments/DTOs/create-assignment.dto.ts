@@ -26,9 +26,9 @@ export class CreateAssignmentDto {
   openedAt?: Date;
 
   @IsOptional()
-  @ValidateIf((object: CreateAssignmentDto) => object.closedAt !== undefined)
+  @ValidateIf((object: CreateAssignmentDto) => object.dueAt !== undefined)
   @MinDate(new Date())
-  closedAt?: Date;
+  dueAt?: Date;
 
   @Transform(({ value }) => parseInt(value))
   @IsOptional()

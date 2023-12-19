@@ -5,17 +5,23 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { InternalServerErrorException } from '@nestjs/common';
-import { AssignmentEntity, AttachmentEntity } from './entity';
+import {
+  AssignmentEntity,
+  AttachmentEntity,
+  StudentAssignmentEntity,
+} from './entity';
 import {
   CreateAssignmentDto,
   UpdateAssignmentDto,
   DeleteAttachmentDto,
+  PostStudentAssignmentDto,
 } from './DTOs';
 import {
   GetAssignmentResponse,
   CreateAssignmentResponse,
   UpdateAssignmentResponse,
   GetDetailAssignmentResponse,
+  PostStudentAssignmentResponse,
 } from './interfaces';
 import { getPrevUrl, getNextUrl } from '../utils';
 import { join } from 'path';
@@ -31,7 +37,6 @@ export class AssignmentsService {
     take: number,
   ): Promise<GetAssignmentResponse> {
     try {
-      await this.updateClosedAssignment();
       await this.updateOpenedAssignment();
       const assignments: AssignmentEntity[] = await this.findManyByClassroomID(
         classroomID,
@@ -325,16 +330,136 @@ export class AssignmentsService {
     });
   }
 
-  async updateClosedAssignment(): Promise<void> {
-    await this.prismaService.assignments.updateMany({
-      where: {
-        closedAt: {
-          lte: new Date(),
+  async postStudentAssignment(
+    assignmentID: string,
+    userID: string,
+    dto: PostStudentAssignmentDto[],
+    files: Express.Multer.File[],
+  ): Promise<PostStudentAssignmentResponse> {
+    try {
+      const assignment: AssignmentEntity = await this.findOneById(assignmentID);
+      if (!assignment) throw new NotFoundException(['Assignment not found']);
+      if (!dto && !files)
+        throw new BadRequestException(['Assignment is required']);
+      let isOverdue: boolean = null;
+      if (!assignment.dueAt) isOverdue = false;
+      if (assignment.dueAt && assignment.dueAt <= new Date()) isOverdue = true;
+      if (assignment.dueAt && assignment.dueAt >= new Date()) isOverdue = false;
+      const studentAssignmentID: string = (
+        await this.createStudentAssignment(assignmentID, userID, isOverdue)
+      ).id;
+
+      if (files)
+        await this.createStudentAssignmentAttachments(
+          studentAssignmentID,
+          files,
+        );
+      if (dto.length)
+        await this.createStudentAssignmentTypeURL(studentAssignmentID, dto);
+      return {
+        status: 'success',
+        message: 'Assignment successfully posted',
+        data: {
+          id: studentAssignmentID,
         },
-      },
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+      if (error instanceof BadRequestException) throw error;
+      console.error(error);
+      throw new InternalServerErrorException();
+    }
+  }
+
+  async createStudentAssignment(
+    assignmentID: string,
+    userID: string,
+    overdue: boolean,
+  ): Promise<StudentAssignmentEntity> {
+    return await this.prismaService.student_assignments.create({
       data: {
-        isClosed: true,
+        assignmentID,
+        userID,
+        overdue,
       },
     });
+  }
+
+  async createStudentAssignmentAttachments(
+    studentAssignmentID: string,
+    materialFiles: Express.Multer.File[],
+  ): Promise<void> {
+    const data = [];
+    try {
+      materialFiles.forEach((materialFile) => {
+        const randomFolderName: string = crypto.randomBytes(16).toString('hex');
+        const dir: string = join(
+          __dirname,
+          '..',
+          '..',
+          'storages',
+          'student',
+          'attachments',
+          randomFolderName,
+        );
+        this.moveUserAssignmentAttachment(
+          materialFile.buffer,
+          dir,
+          materialFile.originalname,
+        );
+        data.push({
+          type: 'FILE',
+          studentAssignmentID,
+          attachmentPath: `${dir}\\${materialFile.originalname}`,
+          attachmentURL: `${process.env.BASE_URL}/storages/student/attachments/${randomFolderName}/${materialFile.originalname}`,
+        });
+      });
+
+      await this.prismaService.student_assignment_attachments.createMany({
+        data: data,
+      });
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  moveUserAssignmentAttachment(
+    buffer: Buffer,
+    dir: string,
+    filename: string,
+  ): void {
+    fs.mkdir(dir, (err) => {
+      if (err) {
+        console.error(err);
+        throw err;
+      }
+      fs.writeFile(`${dir}\\${filename}`, buffer, (err) => {
+        if (err) {
+          console.error(err);
+          throw err;
+        }
+      });
+    });
+  }
+
+  async createStudentAssignmentTypeURL(
+    studentAssignmentID: string,
+    DTOs: PostStudentAssignmentDto[],
+  ): Promise<void> {
+    try {
+      const data = [];
+      DTOs.forEach((dto) => {
+        data.push({
+          type: 'URL',
+          attachmentURL: dto.url,
+          studentAssignmentID,
+        });
+      });
+      await this.prismaService.student_assignment_attachments.createMany({
+        data: data,
+      });
+    } catch (error) {
+      throw error;
+    }
   }
 }
