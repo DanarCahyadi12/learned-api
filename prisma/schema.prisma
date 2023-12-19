@@ -27,7 +27,7 @@ model users {
   classroomJoined classroom_participants[]
   quizResult quiz_results[]
   quizOnGoing quiz_on_going?
-  assignments user_assignments[]
+  assignments student_assignments[]
 
 }
 
@@ -62,8 +62,10 @@ model quiz {
   id String @id @default(uuid())
   title String
   description String?
-  dateOpen DateTime @default(now())
-  dateClose DateTime?
+  openedAt DateTime @default(now())
+  closedAt DateTime?
+  isOpen Boolean @default(true)
+  isClosed Boolean @default(false)
   passGrade Int?
   timeLimits String?
   randomQuestion Boolean @default(false)
@@ -151,16 +153,16 @@ model assignments {
   title String
   description String? @db.MediumText
   openedAt DateTime @default(now())
-  closedAt DateTime? 
+  dueAt DateTime? 
   passGrade Int?
   extensions String?
-  isClosed Boolean @default(false)
+  isOpen Boolean @default(true)
   allowSeeGrade Boolean @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
   classroom classroom @relation(fields: [classroomID], references: [id], onDelete: Cascade, onUpdate: Cascade)
   classroomID String
-  users user_assignments[]
+  users student_assignments[]
   attachments assignment_attachments[]
 }
 
@@ -175,31 +177,32 @@ model assignment_attachments {
 
 }
 
-model user_assignments {
+model student_assignments {
   id String @id @default(uuid())
   assignments assignments @relation(fields: [assignmentID], references: [id], onDelete: Cascade, onUpdate: Cascade)
   users users @relation(fields: [userID], references: [id], onDelete: Cascade, onUpdate: Cascade)
   assignmentID String 
   userID String 
   submitedAt DateTime @default(now())
-  overdue Boolean @default(false)
+  overdue Boolean
   assignmentGraded assignment_graded?
-  user_assignment_attachments user_assignment_attachments[]
+  student_assignment_attachments student_assignment_attachments[]
 }
 
-model user_assignment_attachments {
+model student_assignment_attachments {
   id String @id @default(uuid())
   type String 
-  user_assignments user_assignments @relation(fields: [userAssignmentID], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  userAssignmentID String 
-  attachments String
+  student_assignments student_assignments @relation(fields: [studentAssignmentID], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  studentAssignmentID String 
+  attachmentURL String
+  attachmentPath String?
   createdAt DateTime @default(now())
 }
 
 
 model assignment_graded {
   id String @id @default(uuid())
-  userAssignment user_assignments @relation(fields: [userAssignmentID], references: [id],onDelete: Cascade, onUpdate: Cascade )
+  userAssignment student_assignments @relation(fields: [userAssignmentID], references: [id],onDelete: Cascade, onUpdate: Cascade )
   userAssignmentID String @unique
   grade Int
   gradedAt DateTime @default(now())
