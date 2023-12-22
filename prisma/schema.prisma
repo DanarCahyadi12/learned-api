@@ -182,22 +182,23 @@ model student_assignments {
   assignments assignments @relation(fields: [assignmentID], references: [id], onDelete: Cascade, onUpdate: Cascade)
   users users @relation(fields: [userID], references: [id], onDelete: Cascade, onUpdate: Cascade)
   assignmentID String 
-  userID String 
+  userID String @unique
   submitedAt DateTime @default(now())
+  updatedAt DateTime @default(now())
   overdue Boolean
   assignmentGraded assignment_graded?
-  student_assignment_attachments student_assignment_attachments[]
+  studentAttachments student_assignment_attachments[]
 }
 
 model student_assignment_attachments {
   id String @id @default(uuid())
   type String 
-  student_assignments student_assignments @relation(fields: [studentAssignmentID], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  studentAssignmentID String 
-  attachmentURL String
-  attachmentPath String?
-  createdAt DateTime @default(now())
+  studentAssignments student_assignments @relation(fields: [studentAssignmentID], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  studentAssignmentID String
+  attachmentURL String @db.MediumText
+  attachmentPath String? @db.MediumText
 }
+
 
 
 model assignment_graded {
