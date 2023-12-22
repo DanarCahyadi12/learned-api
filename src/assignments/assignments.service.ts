@@ -540,7 +540,7 @@ export class AssignmentsService {
         },
         select: {
           id: true,
-
+          updatedAt: true,
           submitedAt: true,
           overdue: true,
           users: {

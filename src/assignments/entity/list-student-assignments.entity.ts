@@ -2,8 +2,9 @@ import { StudentAssignmentAttachmentEntity } from './student-assignment-attachme
 
 export interface ListStudentAssignments {
   id: string;
-  submitedAt: Date;
   overdue: boolean;
+  submitedAt: Date;
+  updatedAt: Date;
   users: {
     id: string;
     name: string;

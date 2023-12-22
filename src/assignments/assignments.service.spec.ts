@@ -165,6 +165,7 @@ describe('AssignmentsService', () => {
     {
       id: 'f6198eda-98f7-46cb-b5f1-5ae33656d9be',
       submitedAt: new Date(),
+      updatedAt: new Date(),
       overdue: false,
       studentAttachments: studentAssignmentAttachmentMocks,
       users: {
@@ -418,6 +419,7 @@ describe('AssignmentsService', () => {
       {
         id: 'f6198eda-98f7-46cb-b5f1-5ae33656d9be',
         submitedAt: listStudentAssignmentMocks[0].submitedAt,
+        updatedAt: listStudentAssignmentMocks[0].updatedAt,
         overdue: false,
         studentAttachments: studentAssignmentAttachmentMocks,
         users: {
@@ -464,6 +466,7 @@ describe('AssignmentsService', () => {
             {
               id: 'f6198eda-98f7-46cb-b5f1-5ae33656d9be',
               submitedAt: listStudentAssignmentMocks[0].submitedAt,
+              updatedAt: listStudentAssignmentMocks[0].updatedAt,
               overdue: false,
               studentAttachments: studentAssignmentAttachmentMocks,
               users: {
