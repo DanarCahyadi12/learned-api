@@ -5,11 +5,9 @@ export interface ListStudentAssignments {
   submitedAt: Date;
   overdue: boolean;
   studentAttachments: StudentAssignmentAttachmentEntity[];
-  users: Student;
-}
-
-interface Student {
-  id: string;
-  name: string;
-  avatarURL: string;
+  users: {
+    id: string;
+    name: string;
+    avatarURL: string;
+  };
 }
