@@ -22,11 +22,13 @@ import {
   UpdateAssignmentResponse,
   GetDetailAssignmentResponse,
   PostStudentAssignmentResponse,
+  GetListStudentAssignmentResponse,
 } from './interfaces';
 import { getPrevUrl, getNextUrl } from '../utils';
 import { join } from 'path';
 import * as fs from 'fs';
 import * as crypto from 'crypto';
+import { ListStudentAssignments } from './entity/list-student-assignments.entity';
 @Injectable()
 export class AssignmentsService {
   constructor(private prismaService: PrismaService) {}
@@ -55,9 +57,14 @@ export class AssignmentsService {
         message: 'Get classroom assignments successfully',
         data: {
           totalPage,
-          prev: getPrevUrl(page, take),
+          prev: getPrevUrl(page, take, `classroom/${classroomID}/assignments`),
           currentPage: page,
-          next: getNextUrl(totalPage, take, page),
+          next: getNextUrl(
+            totalPage,
+            take,
+            page,
+            `classroom/${classroomID}/assignments`,
+          ),
           items: {
             totalAssignment,
             assignments,
@@ -457,6 +464,88 @@ export class AssignmentsService {
       });
       await this.prismaService.student_assignment_attachments.createMany({
         data: data,
+      });
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getListStudentAssignments(
+    assignmentID: string,
+    page: number,
+    take: number,
+  ): Promise<GetListStudentAssignmentResponse> {
+    try {
+      const isExitsAssignment = await this.findOneById(assignmentID);
+      if (!isExitsAssignment)
+        throw new NotFoundException(['Assignnment not found!']);
+      const listAssignments: ListStudentAssignments[] =
+        await this.findListStudentAssignments(assignmentID, page, take);
+      const totalListAssignment: number =
+        await this.prismaService.student_assignments.count({
+          where: {
+            assignmentID,
+          },
+        });
+      const totalPage: number = Math.ceil(totalListAssignment / take);
+      const prevURL: string = getPrevUrl(
+        page,
+        take,
+        `classroom/${isExitsAssignment.classroomID}/list/student/assignments/${assignmentID}}`,
+      );
+      const nextURL: string = getNextUrl(
+        totalPage,
+        take,
+        page,
+        `classroom/${isExitsAssignment.classroomID}/list/student/assignments/${assignmentID}}`,
+      );
+      return {
+        status: 'success',
+        message: 'Get list of student assignments successfully',
+        data: {
+          totalPage,
+          prev: prevURL,
+          currentPage: page,
+          next: nextURL,
+          items: {
+            totalAssignment: totalListAssignment,
+            assignments: listAssignments,
+          },
+        },
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+      console.error(error);
+      throw new InternalServerErrorException();
+    }
+  }
+
+  async findListStudentAssignments(
+    assignmentID: string,
+    page: number,
+    take: number,
+  ): Promise<ListStudentAssignments[]> {
+    try {
+      return await this.prismaService.student_assignments.findMany({
+        skip: (page - 1) * take,
+        take: take,
+        where: {
+          assignmentID,
+        },
+        select: {
+          id: true,
+
+          submitedAt: true,
+          overdue: true,
+          users: {
+            select: {
+              id: true,
+              name: true,
+              avatarURL: true,
+            },
+          },
+          studentAttachments: true,
+        },
       });
     } catch (error) {
       throw error;

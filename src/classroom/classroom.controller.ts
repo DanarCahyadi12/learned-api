@@ -287,4 +287,18 @@ export class ClassroomController {
       files?.assignments,
     );
   }
+
+  @UseGuards(TeacherGuard)
+  @Get(':id/list/student/assignments/:assignmentID')
+  async getListStudentAssignments(
+    @Param('assignmentID') assignmentID: string,
+    @Query('page', ParseIntPipe) page: number = 1,
+    @Query('take', ParseIntPipe) take: number = 50,
+  ) {
+    return await this.assignmentsService.getListStudentAssignments(
+      assignmentID,
+      page,
+      take,
+    );
+  }
 }

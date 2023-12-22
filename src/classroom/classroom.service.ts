@@ -110,9 +110,9 @@ export class ClassroomService {
         message: 'Get created classroom successfully!',
         data: {
           totalPage,
-          prev: getPrevUrl(page, take),
+          prev: getPrevUrl(page, take, 'classroom/created'),
           currentPage: page,
-          next: getNextUrl(totalPage, take, page),
+          next: getNextUrl(totalPage, take, page, 'classroom/created'),
           items: {
             totalClassroom: totalClassroomCreated,
             classrooms: classroomsCreated,

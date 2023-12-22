@@ -4,11 +4,13 @@ import {
   AssignmentEntity,
   StudentAssignmentAttachmentEntity,
   StudentAssignmentEntity,
+  ListStudentAssignments,
 } from './entity';
 import { PrismaMock, prismaMock } from '../prisma/prisma.mock';
 import {
   GetAssignmentResponse,
   GetDetailAssignmentResponse,
+  GetListStudentAssignmentResponse,
   PostStudentAssignmentResponse,
 } from './interfaces';
 import { PrismaModule } from '../prisma/prisma.module';
@@ -34,6 +36,7 @@ describe('AssignmentsService', () => {
       },
     ],
   };
+
   const studentAssignmentMocks: StudentAssignmentEntity[] = [
     {
       id: '83d4f211-148d-4513-9566-e7bad8745f7c',
@@ -57,6 +60,7 @@ describe('AssignmentsService', () => {
       userID: '9c82bf47-ce2f-46d8-a0ca-54b905c12a0b',
     },
   ];
+
   const studentAssignmentAttachmentMocks: StudentAssignmentAttachmentEntity[] =
     [
       {
@@ -153,6 +157,21 @@ describe('AssignmentsService', () => {
           createdAt: new Date(),
         },
       ],
+    },
+  ];
+
+  const listStudentAssignmentMocks: ListStudentAssignments[] = [
+    {
+      id: 'f6198eda-98f7-46cb-b5f1-5ae33656d9be',
+      submitedAt: new Date(),
+      overdue: false,
+      student_assignment_attachments: studentAssignmentAttachmentMocks,
+      users: {
+        id: '1098b63a-5114-40b6-9210-5e0ddcd5a2ac',
+        name: 'I Ketut Danar Cahyadi',
+        avatarURL:
+          'https://lh3.googleusercontent.com/a/ACg8ocKdyLX_B8ywM1dPWdZBcmDyM2jecENebOupFxPZYKLc=s96-c',
+      },
     },
   ];
   beforeEach(async () => {
@@ -390,6 +409,90 @@ describe('AssignmentsService', () => {
         dto,
         files.materials,
       );
+    }).rejects.toThrow(NotFoundException);
+  });
+
+  it('Should return student assignments', async () => {
+    const expectedResult: ListStudentAssignments[] = [
+      {
+        id: 'f6198eda-98f7-46cb-b5f1-5ae33656d9be',
+        submitedAt: listStudentAssignmentMocks[0].submitedAt,
+        overdue: false,
+        student_assignment_attachments: studentAssignmentAttachmentMocks,
+        users: {
+          id: '1098b63a-5114-40b6-9210-5e0ddcd5a2ac',
+          name: 'I Ketut Danar Cahyadi',
+          avatarURL:
+            'https://lh3.googleusercontent.com/a/ACg8ocKdyLX_B8ywM1dPWdZBcmDyM2jecENebOupFxPZYKLc=s96-c',
+        },
+      },
+    ];
+    (prismaMock.student_assignments.findMany as jest.Mock).mockResolvedValue(
+      listStudentAssignmentMocks,
+    );
+
+    const result: ListStudentAssignments[] =
+      await service.findListStudentAssignments(
+        '3271f3cd-dfae-4ae9-bed0-b9d9918deea6',
+        1,
+        50,
+      );
+    expect(result).toEqual(expectedResult);
+  });
+
+  it('It Should return valid response and list student assignments', async () => {
+    (prismaMock.assignments.findUnique as jest.Mock).mockResolvedValue(
+      assignmentsMock[0],
+    );
+
+    (prismaMock.student_assignments.findMany as jest.Mock).mockResolvedValue(
+      listStudentAssignmentMocks,
+    );
+
+    const expectedResult: GetListStudentAssignmentResponse = {
+      status: 'success',
+      message: 'Get list of student assignments successfully',
+      data: {
+        totalPage: 1,
+        prev: null,
+        currentPage: 1,
+        next: null,
+        items: {
+          totalAssignment: 1,
+          assignments: [
+            {
+              id: 'f6198eda-98f7-46cb-b5f1-5ae33656d9be',
+              submitedAt: listStudentAssignmentMocks[0].submitedAt,
+              overdue: false,
+              student_assignment_attachments: studentAssignmentAttachmentMocks,
+              users: {
+                id: '1098b63a-5114-40b6-9210-5e0ddcd5a2ac',
+                name: 'I Ketut Danar Cahyadi',
+                avatarURL:
+                  'https://lh3.googleusercontent.com/a/ACg8ocKdyLX_B8ywM1dPWdZBcmDyM2jecENebOupFxPZYKLc=s96-c',
+              },
+            },
+          ],
+        },
+      },
+    };
+    (prismaMock.student_assignments.count as jest.Mock).mockResolvedValue(1);
+    const result: GetListStudentAssignmentResponse =
+      await service.getListStudentAssignments(
+        '3271f3cd-dfae-4ae9-bed0-b9d9918deea6',
+        1,
+        50,
+      );
+    expect(result).toEqual(expectedResult);
+  });
+
+  it('Should return a NotFound exception', async () => {
+    (prismaMock.assignments.findUnique as jest.Mock).mockResolvedValue(
+      undefined,
+    );
+
+    expect(async () => {
+      await service.getListStudentAssignments('Invalid id', 1, 50);
     }).rejects.toThrow(NotFoundException);
   });
 });
