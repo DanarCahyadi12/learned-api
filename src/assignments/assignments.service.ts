@@ -345,6 +345,19 @@ export class AssignmentsService {
   ): Promise<PostStudentAssignmentResponse> {
     try {
       const assignment: AssignmentEntity = await this.findOneById(assignmentID);
+      const isAssignmentAlreadySubmited =
+        await this.prismaService.student_assignments.findFirst({
+          where: {
+            userID: userID,
+          },
+          select: {
+            id: true,
+          },
+        });
+      if (isAssignmentAlreadySubmited)
+        throw new BadRequestException([
+          'You are already submited this assignment',
+        ]);
       if (!assignment) throw new NotFoundException(['Assignment not found']);
       if (!dto && !files)
         throw new BadRequestException(['Assignment is required']);
