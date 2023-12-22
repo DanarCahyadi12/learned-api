@@ -112,9 +112,14 @@ export class MaterialsService {
         message: 'Get materials successfully!',
         data: {
           totalPage,
-          prev: getPrevUrl(page, take),
+          prev: getPrevUrl(page, take, `classroomn/${classroomID}/materials`),
           currentPage: page,
-          next: getNextUrl(totalPage, take, page),
+          next: getNextUrl(
+            totalPage,
+            take,
+            page,
+            `classroomn/${classroomID}/materials`,
+          ),
           items: {
             totalMaterial,
             materials,
