@@ -7,7 +7,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { InternalServerErrorException } from '@nestjs/common';
 import {
   AssignmentEntity,
-  AttachmentEntity,
+  AssignmentAttachmentEntity,
   StudentAssignmentEntity,
 } from './entity';
 import {
@@ -238,7 +238,7 @@ export class AssignmentsService {
     const attachmentIDs: string[] = dto.map((attachment) => {
       return attachment.id;
     });
-    const attachments: AttachmentEntity[] =
+    const attachments: AssignmentAttachmentEntity[] =
       await this.prismaService.assignment_attachments.findMany({
         where: {
           AND: {
@@ -357,10 +357,7 @@ export class AssignmentsService {
       ).id;
 
       if (files)
-        await this.createStudentAssignmentAttachments(
-          studentAssignmentID,
-          files,
-        );
+        await this.createStudentAssignmentFiles(studentAssignmentID, files);
       if (dto.length)
         await this.createStudentAssignmentTypeURL(studentAssignmentID, dto);
       return {
@@ -392,7 +389,7 @@ export class AssignmentsService {
     });
   }
 
-  async createStudentAssignmentAttachments(
+  async createStudentAssignmentFiles(
     studentAssignmentID: string,
     materialFiles: Express.Multer.File[],
   ): Promise<void> {
@@ -406,10 +403,10 @@ export class AssignmentsService {
           '..',
           'storages',
           'student',
-          'attachments',
+          'assignments',
           randomFolderName,
         );
-        this.moveUserAssignmentAttachment(
+        this.moveUserAssignmentFiles(
           materialFile.buffer,
           dir,
           materialFile.originalname,
@@ -418,10 +415,10 @@ export class AssignmentsService {
           type: 'FILE',
           studentAssignmentID,
           attachmentPath: `${dir}\\${materialFile.originalname}`,
-          attachmentURL: `${process.env.BASE_URL}/storages/student/attachments/${randomFolderName}/${materialFile.originalname}`,
+          attachmentURL: `${process.env.BASE_URL}/storages/student/assignments/${randomFolderName}/${materialFile.originalname}`,
         });
       });
-
+      console.log(data);
       await this.prismaService.student_assignment_attachments.createMany({
         data: data,
       });
@@ -430,11 +427,7 @@ export class AssignmentsService {
     }
   }
 
-  moveUserAssignmentAttachment(
-    buffer: Buffer,
-    dir: string,
-    filename: string,
-  ): void {
+  moveUserAssignmentFiles(buffer: Buffer, dir: string, filename: string): void {
     fs.mkdir(dir, (err) => {
       if (err) {
         console.error(err);

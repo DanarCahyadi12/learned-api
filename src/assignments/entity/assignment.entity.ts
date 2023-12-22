@@ -1,4 +1,4 @@
-import { AttachmentEntity } from './assignment-attachment.entity';
+import { AssignmentAttachmentEntity } from './assignment-attachment.entity';
 
 export interface AssignmentEntity {
   id: string;
@@ -13,5 +13,5 @@ export interface AssignmentEntity {
   createdAt: Date;
   updatedAt: Date;
   classroomID: string;
-  attachments: AttachmentEntity[];
+  attachments?: AssignmentAttachmentEntity[];
 }

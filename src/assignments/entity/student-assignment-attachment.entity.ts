@@ -4,5 +4,4 @@ export interface StudentAssignmentAttachmentEntity {
   studentAssignmentID: string;
   attachmentURL: string;
   attachmentPath: string;
-  createdAt: Date;
 }

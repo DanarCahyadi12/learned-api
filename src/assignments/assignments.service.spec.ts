@@ -42,6 +42,7 @@ describe('AssignmentsService', () => {
       id: '83d4f211-148d-4513-9566-e7bad8745f7c',
       assignmentID: '3271f3cd-dfae-4ae9-bed0-b9d9918deea6',
       submitedAt: new Date(),
+      updatedAt: new Date(),
       overdue: false,
       userID: '9c82bf47-ce2f-46d8-a0ca-54b905c12a0b',
     },
@@ -49,6 +50,7 @@ describe('AssignmentsService', () => {
       id: 'dd7ccd10-2272-40f3-b060-d879af555845',
       assignmentID: '07177838-3ae8-4fc6-9982-623251c836b0',
       submitedAt: new Date(),
+      updatedAt: new Date(),
       overdue: false,
       userID: '9c82bf47-ce2f-46d8-a0ca-54b905c12a0b',
     },
@@ -56,6 +58,7 @@ describe('AssignmentsService', () => {
       id: '72a6101f-fc45-48e1-8c9a-c9d80e07619a',
       assignmentID: 'b31e3a8e-89d2-462e-9e4d-8bb4b04d634d',
       submitedAt: new Date(),
+      updatedAt: new Date(),
       overdue: false,
       userID: '9c82bf47-ce2f-46d8-a0ca-54b905c12a0b',
     },
@@ -71,7 +74,6 @@ describe('AssignmentsService', () => {
           'C:\\Users\\Danar Cahyadi\\OneDrive\\Desktop\\learned-api\\storages\\student\\attachments\\test.pdf',
         attachmentURL:
           'http://localhost:3000/storages/student/attachments/2938npor93sdoq/test.pdf',
-        createdAt: new Date(),
       },
       {
         id: '7ed63d55-799c-4de4-95f2-ca6b0641d7cf',
@@ -79,7 +81,6 @@ describe('AssignmentsService', () => {
         studentAssignmentID: '83d4f211-148d-4513-9566-e7bad8745f7c',
         attachmentPath: null,
         attachmentURL: 'https://example.com/assignments',
-        createdAt: new Date(),
       },
     ];
   const assignmentsMock: AssignmentEntity[] = [
@@ -165,7 +166,7 @@ describe('AssignmentsService', () => {
       id: 'f6198eda-98f7-46cb-b5f1-5ae33656d9be',
       submitedAt: new Date(),
       overdue: false,
-      student_assignment_attachments: studentAssignmentAttachmentMocks,
+      studentAttachments: studentAssignmentAttachmentMocks,
       users: {
         id: '1098b63a-5114-40b6-9210-5e0ddcd5a2ac',
         name: 'I Ketut Danar Cahyadi',
@@ -293,7 +294,7 @@ describe('AssignmentsService', () => {
     expect(result).toEqual(studentAssignmentMocks[0]);
   });
 
-  it('Should create user attachment file', () => {
+  it('Should create user assignment file', () => {
     const buffer: Buffer = Buffer.from('TEST TEST 1 2 3 4');
     const randomFolderName: string = crypto.randomBytes(16).toString('hex');
     const dir: string = join(
@@ -302,12 +303,12 @@ describe('AssignmentsService', () => {
       '..',
       'storages',
       'student',
-      'attachments',
+      'assignments',
       randomFolderName,
     );
     const filename: string = 'test.pdf';
     expect(
-      service.moveUserAssignmentAttachment(buffer, dir, filename),
+      service.moveUserAssignmentFiles(buffer, dir, filename),
     ).toBeUndefined();
   });
 
@@ -316,7 +317,7 @@ describe('AssignmentsService', () => {
       prismaMock.student_assignment_attachments.createMany as jest.Mock
     ).mockResolvedValue(studentAssignmentAttachmentMocks[0]);
     expect(
-      await service.createStudentAssignmentAttachments(
+      await service.createStudentAssignmentFiles(
         '83d4f211-148d-4513-9566-e7bad8745f7c',
         files.materials,
       ),
@@ -418,7 +419,7 @@ describe('AssignmentsService', () => {
         id: 'f6198eda-98f7-46cb-b5f1-5ae33656d9be',
         submitedAt: listStudentAssignmentMocks[0].submitedAt,
         overdue: false,
-        student_assignment_attachments: studentAssignmentAttachmentMocks,
+        studentAttachments: studentAssignmentAttachmentMocks,
         users: {
           id: '1098b63a-5114-40b6-9210-5e0ddcd5a2ac',
           name: 'I Ketut Danar Cahyadi',
@@ -464,7 +465,7 @@ describe('AssignmentsService', () => {
               id: 'f6198eda-98f7-46cb-b5f1-5ae33656d9be',
               submitedAt: listStudentAssignmentMocks[0].submitedAt,
               overdue: false,
-              student_assignment_attachments: studentAssignmentAttachmentMocks,
+              studentAttachments: studentAssignmentAttachmentMocks,
               users: {
                 id: '1098b63a-5114-40b6-9210-5e0ddcd5a2ac',
                 name: 'I Ketut Danar Cahyadi',

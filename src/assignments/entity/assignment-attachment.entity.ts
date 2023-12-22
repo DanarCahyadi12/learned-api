@@ -1,4 +1,4 @@
-export interface AttachmentEntity {
+export interface AssignmentAttachmentEntity {
   id: string;
   name: string;
   path: string;
