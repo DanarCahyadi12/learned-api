@@ -15,6 +15,7 @@ import {
   UpdateAssignmentDto,
   DeleteAttachmentDto,
   PostStudentAssignmentDto,
+  DeleteStudentAssignmentDto,
 } from './DTOs';
 import {
   GetAssignmentResponse,
@@ -349,6 +350,7 @@ export class AssignmentsService {
         await this.prismaService.student_assignments.findFirst({
           where: {
             userID: userID,
+            assignmentID,
           },
           select: {
             id: true,
@@ -551,6 +553,52 @@ export class AssignmentsService {
             },
           },
           studentAttachments: true,
+        },
+      });
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updatedPostedAssignmentStudent(
+    studentAssignmentID: string,
+    deleteAssignmentDTO: DeleteStudentAssignmentDto[],
+    files: Express.Multer.File[],
+  ) {
+    try {
+      const isExitsStudentAssignent = (
+        await this.prismaService.student_assignments.findUnique({
+          where: { id: studentAssignmentID },
+          select: {
+            id: true,
+          },
+        })
+      ).id;
+      if (!isExitsStudentAssignent)
+        throw new NotFoundException(['Student assignment not found']);
+      if (deleteAssignmentDTO)
+        await this.deleteStudentAssignmentAttachments(deleteAssignmentDTO);
+      if (files)
+        await this.createStudentAssignmentFiles(studentAssignmentID, files);
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+      console.log(error);
+      throw new InternalServerErrorException();
+    }
+  }
+
+  async deleteStudentAssignmentAttachments(
+    DTOs: DeleteStudentAssignmentDto[],
+  ): Promise<void> {
+    const IDs: string[] = DTOs.map((dto) => {
+      return dto.id;
+    });
+    try {
+      await this.prismaService.student_assignment_attachments.deleteMany({
+        where: {
+          id: {
+            in: [...IDs],
+          },
         },
       });
     } catch (error) {

@@ -20,6 +20,29 @@ import { join } from 'path';
 import { PostStudentAssignmentDto } from './DTOs';
 describe('AssignmentsService', () => {
   let service: AssignmentsService;
+  const deleteStudentAssignmentMocks = [
+    {
+      count: 2,
+      bacth: [
+        {
+          id: '35e03d3b-4b09-440b-bf1b-5f6a9c79128c',
+          type: 'FILE',
+          studentAssignmentID: '83d4f211-148d-4513-9566-e7bad8745f7c',
+          attachmentPath:
+            'C:\\Users\\Danar Cahyadi\\OneDrive\\Desktop\\learned-api\\storages\\student\\attachments\\test.pdf',
+          attachmentURL:
+            'http://localhost:3000/storages/student/attachments/2938npor93sdoq/test.pdf',
+        },
+        {
+          id: '7ed63d55-799c-4de4-95f2-ca6b0641d7cf',
+          type: 'URL',
+          studentAssignmentID: '83d4f211-148d-4513-9566-e7bad8745f7c',
+          attachmentPath: null,
+          attachmentURL: 'https://example.com/assignments',
+        },
+      ],
+    },
+  ];
   const files = {
     materials: [
       {
@@ -498,5 +521,29 @@ describe('AssignmentsService', () => {
     expect(async () => {
       await service.getListStudentAssignments('Invalid id', 1, 50);
     }).rejects.toThrow(NotFoundException);
+  });
+
+  it('Should not throw an error when deleting student attachments', async () => {
+    (
+      prismaMock.student_assignment_attachments.deleteMany as jest.Mock
+    ).mockResolvedValue(deleteStudentAssignmentMocks);
+
+    expect(async () => {
+      await service.deleteStudentAssignmentAttachments([
+        { id: '35e03d3b-4b09-440b-bf1b-5f6a9c79128c' },
+        { id: '7ed63d55-799c-4de4-95f2-ca6b0641d7cf' },
+      ]);
+    }).resolves;
+  });
+
+  it('Should updating posted student assignment', async () => {
+    (prismaMock.student_assignments.findUnique as jest.Mock).mockResolvedValue(
+      studentAssignmentMocks[0],
+    );
+    (
+      prismaMock.student_assignment_attachments.deleteMany as jest.Mock
+    ).mockResolvedValue(deleteStudentAssignmentMocks);
+
+    const expectedResult: 
   });
 });
