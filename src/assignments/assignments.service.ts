@@ -14,8 +14,7 @@ import {
   CreateAssignmentDto,
   UpdateAssignmentDto,
   DeleteAttachmentDto,
-  PostStudentAssignmentDto,
-  DeleteStudentAssignmentDto,
+  CreateStudentAssignmentDto,
 } from './DTOs';
 import {
   GetAssignmentResponse,
@@ -199,27 +198,23 @@ export class AssignmentsService {
     try {
       if (dto?.deleteAttachments)
         await this.deleteAttachments(dto.deleteAttachments, assignmentID);
-      const assignmentId: string = (
-        await this.prismaService.assignments.update({
-          where: {
-            id: assignmentID,
-          },
-          data: {
-            ...assignmentDto,
-            extensions: dto.extensions.join(','),
-          },
-          select: {
-            id: true,
-          },
-        })
-      ).id;
+      await this.prismaService.assignments.update({
+        where: {
+          id: assignmentID,
+        },
+        data: {
+          ...assignmentDto,
+          extensions: dto.extensions.join(','),
+        },
+        select: {
+          id: true,
+        },
+      });
+
       if (files?.attachment) await this.createAttachments(files, assignmentID);
       return {
         status: 'success',
         message: 'Assignment successfully updated',
-        data: {
-          id: assignmentId,
-        },
       };
     } catch (err) {
       console.log(err);
@@ -341,7 +336,7 @@ export class AssignmentsService {
   async postStudentAssignment(
     assignmentID: string,
     userID: string,
-    dto: PostStudentAssignmentDto[],
+    URLs: string[],
     files: Express.Multer.File[],
   ): Promise<PostStudentAssignmentResponse> {
     try {
@@ -361,20 +356,21 @@ export class AssignmentsService {
           'You are already submited this assignment',
         ]);
       if (!assignment) throw new NotFoundException(['Assignment not found']);
-      if (!dto && !files)
+      if (!URLs && !files)
         throw new BadRequestException(['Assignment is required']);
       let isOverdue: boolean = null;
       if (!assignment.dueAt) isOverdue = false;
-      if (assignment.dueAt && assignment.dueAt <= new Date()) isOverdue = true;
-      if (assignment.dueAt && assignment.dueAt >= new Date()) isOverdue = false;
+      if (assignment.dueAt && assignment.dueAt < new Date()) isOverdue = true;
+      if (assignment.dueAt && assignment.dueAt > new Date()) isOverdue = false;
       const studentAssignmentID: string = (
-        await this.createStudentAssignment(assignmentID, userID, isOverdue)
+        await this.createStudentAssignment({
+          assignmentID,
+          userID,
+          URLs,
+          files,
+          overdue: isOverdue,
+        })
       ).id;
-
-      if (files)
-        await this.createStudentAssignmentFiles(studentAssignmentID, files);
-      if (dto.length)
-        await this.createStudentAssignmentTypeURL(studentAssignmentID, dto);
       return {
         status: 'success',
         message: 'Assignment successfully posted',
@@ -391,52 +387,60 @@ export class AssignmentsService {
   }
 
   async createStudentAssignment(
-    assignmentID: string,
-    userID: string,
-    overdue: boolean,
+    dto: CreateStudentAssignmentDto,
   ): Promise<StudentAssignmentEntity> {
+    const studentAttachments = await this.mergeData(dto);
+    console.log('student attachments: ', studentAttachments);
     return await this.prismaService.student_assignments.create({
       data: {
-        assignmentID,
-        userID,
-        overdue,
+        assignmentID: dto.assignmentID,
+        userID: dto.userID,
+        overdue: dto.overdue,
+        studentAttachments: {
+          createMany: {
+            data: studentAttachments,
+          },
+        },
       },
     });
   }
 
-  async createStudentAssignmentFiles(
-    studentAssignmentID: string,
-    materialFiles: Express.Multer.File[],
-  ): Promise<void> {
+  async mergeData(dto: CreateStudentAssignmentDto) {
     const data = [];
+    console.log('DTO: ', dto.URLs);
     try {
-      materialFiles.forEach((materialFile) => {
-        const randomFolderName: string = crypto.randomBytes(16).toString('hex');
-        const dir: string = join(
-          __dirname,
-          '..',
-          '..',
-          'storages',
-          'student',
-          'assignments',
-          randomFolderName,
-        );
-        this.moveUserAssignmentFiles(
-          materialFile.buffer,
-          dir,
-          materialFile.originalname,
-        );
-        data.push({
-          type: 'FILE',
-          studentAssignmentID,
-          attachmentPath: `${dir}\\${materialFile.originalname}`,
-          attachmentURL: `${process.env.BASE_URL}/storages/student/assignments/${randomFolderName}/${materialFile.originalname}`,
+      if (dto?.files) {
+        dto.files.forEach((file) => {
+          const randomFolderName: string = crypto
+            .randomBytes(16)
+            .toString('hex');
+          const dir: string = join(
+            __dirname,
+            '..',
+            '..',
+            'storages',
+            'student',
+            'assignments',
+            randomFolderName,
+          );
+          this.moveUserAssignmentFiles(file.buffer, dir, file.originalname);
+          data.push({
+            type: 'FILE',
+            attachmentPath: `${dir}\\${file.originalname}`,
+            attachmentURL: `${process.env.BASE_URL}/storages/student/assignments/${randomFolderName}/${file.originalname}`,
+          });
         });
-      });
+      }
+      if (dto?.URLs) {
+        dto.URLs.forEach((url) => {
+          data.push({
+            type: 'URL',
+            attachmentURL: url,
+          });
+        });
+      }
       console.log(data);
-      await this.prismaService.student_assignment_attachments.createMany({
-        data: data,
-      });
+      return data;
     } catch (error) {
       throw error;
     }
@@ -455,27 +459,6 @@ export class AssignmentsService {
         }
       });
     });
-  }
-
-  async createStudentAssignmentTypeURL(
-    studentAssignmentID: string,
-    DTOs: PostStudentAssignmentDto[],
-  ): Promise<void> {
-    try {
-      const data = [];
-      DTOs.forEach((dto) => {
-        data.push({
-          type: 'URL',
-          attachmentURL: dto.url,
-          studentAssignmentID,
-        });
-      });
-      await this.prismaService.student_assignment_attachments.createMany({
-        data: data,
-      });
-    } catch (error) {
-      throw error;
-    }
   }
 
   async getListStudentAssignments(
@@ -553,52 +536,6 @@ export class AssignmentsService {
             },
           },
           studentAttachments: true,
-        },
-      });
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  async updatedPostedAssignmentStudent(
-    studentAssignmentID: string,
-    deleteAssignmentDTO: DeleteStudentAssignmentDto[],
-    files: Express.Multer.File[],
-  ) {
-    try {
-      const isExitsStudentAssignent = (
-        await this.prismaService.student_assignments.findUnique({
-          where: { id: studentAssignmentID },
-          select: {
-            id: true,
-          },
-        })
-      ).id;
-      if (!isExitsStudentAssignent)
-        throw new NotFoundException(['Student assignment not found']);
-      if (deleteAssignmentDTO)
-        await this.deleteStudentAssignmentAttachments(deleteAssignmentDTO);
-      if (files)
-        await this.createStudentAssignmentFiles(studentAssignmentID, files);
-    } catch (error) {
-      if (error instanceof NotFoundException) throw error;
-      console.log(error);
-      throw new InternalServerErrorException();
-    }
-  }
-
-  async deleteStudentAssignmentAttachments(
-    DTOs: DeleteStudentAssignmentDto[],
-  ): Promise<void> {
-    const IDs: string[] = DTOs.map((dto) => {
-      return dto.id;
-    });
-    try {
-      await this.prismaService.student_assignment_attachments.deleteMany({
-        where: {
-          id: {
-            in: [...IDs],
-          },
         },
       });
     } catch (error) {

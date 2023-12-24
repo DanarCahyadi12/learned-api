@@ -17,32 +17,32 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import * as crypto from 'crypto';
 import { join } from 'path';
-import { PostStudentAssignmentDto } from './DTOs';
+import { CreateStudentAssignmentDto } from './DTOs';
 describe('AssignmentsService', () => {
   let service: AssignmentsService;
-  const deleteStudentAssignmentMocks = [
-    {
-      count: 2,
-      bacth: [
-        {
-          id: '35e03d3b-4b09-440b-bf1b-5f6a9c79128c',
-          type: 'FILE',
-          studentAssignmentID: '83d4f211-148d-4513-9566-e7bad8745f7c',
-          attachmentPath:
-            'C:\\Users\\Danar Cahyadi\\OneDrive\\Desktop\\learned-api\\storages\\student\\attachments\\test.pdf',
-          attachmentURL:
-            'http://localhost:3000/storages/student/attachments/2938npor93sdoq/test.pdf',
-        },
-        {
-          id: '7ed63d55-799c-4de4-95f2-ca6b0641d7cf',
-          type: 'URL',
-          studentAssignmentID: '83d4f211-148d-4513-9566-e7bad8745f7c',
-          attachmentPath: null,
-          attachmentURL: 'https://example.com/assignments',
-        },
-      ],
-    },
-  ];
+  // const deleteStudentAssignmentMocks = [
+  //   {
+  //     count: 2,
+  //     batch: [
+  //       {
+  //         id: '35e03d3b-4b09-440b-bf1b-5f6a9c79128c',
+  //         type: 'FILE',
+  //         studentAssignmentID: '83d4f211-148d-4513-9566-e7bad8745f7c',
+  //         attachmentPath:
+  //           'C:\\Users\\Danar Cahyadi\\OneDrive\\Desktop\\learned-api\\storages\\student\\attachments\\test.pdf',
+  //         attachmentURL:
+  //           'http://localhost:3000/storages/student/attachments/2938npor93sdoq/test.pdf',
+  //       },
+  //       {
+  //         id: '7ed63d55-799c-4de4-95f2-ca6b0641d7cf',
+  //         type: 'URL',
+  //         studentAssignmentID: '83d4f211-148d-4513-9566-e7bad8745f7c',
+  //         attachmentPath: null,
+  //         attachmentURL: 'https://example.com/assignments',
+  //       },
+  //     ],
+  //   },
+  // ];
   const files = {
     materials: [
       {
@@ -306,16 +306,47 @@ describe('AssignmentsService', () => {
   });
 
   it('Should create a student assignment', async () => {
-    (prismaMock.student_assignments.create as jest.Mock).mockResolvedValue(
-      studentAssignmentMocks[0],
-    );
-    const result: StudentAssignmentEntity =
-      await service.createStudentAssignment(
-        '3271f3cd-dfae-4ae9-bed0-b9d9918deea6',
-        '9c82bf47-ce2f-46d8-a0ca-54b905c12a0b',
-        false,
-      );
-    expect(result).toEqual(studentAssignmentMocks[0]);
+    (prismaMock.student_assignments.create as jest.Mock).mockResolvedValue({
+      ...studentAssignmentMocks[0],
+      studentAttachments: studentAssignmentAttachmentMocks,
+    });
+    const dto: CreateStudentAssignmentDto = {
+      assignmentID: '3271f3cd-dfae-4ae9-bed0-b9d9918deea6',
+      userID: '9c82bf47-ce2f-46d8-a0ca-54b905c12a0b',
+      overdue: false,
+      URLs: [
+        'https://google.com/drive/as323ic30p--2mdioef',
+        'https://google.com/drive/as323ic30p--2mdioef',
+      ],
+      files: files.materials,
+    };
+    const result = await service.createStudentAssignment(dto);
+    expect(result).toEqual({
+      id: '83d4f211-148d-4513-9566-e7bad8745f7c',
+      assignmentID: '3271f3cd-dfae-4ae9-bed0-b9d9918deea6',
+      submitedAt: studentAssignmentMocks[0].submitedAt,
+      updatedAt: studentAssignmentMocks[0].updatedAt,
+      overdue: false,
+      userID: '9c82bf47-ce2f-46d8-a0ca-54b905c12a0b',
+      studentAttachments: [
+        {
+          id: '35e03d3b-4b09-440b-bf1b-5f6a9c79128c',
+          type: 'FILE',
+          studentAssignmentID: '83d4f211-148d-4513-9566-e7bad8745f7c',
+          attachmentPath:
+            'C:\\Users\\Danar Cahyadi\\OneDrive\\Desktop\\learned-api\\storages\\student\\attachments\\test.pdf',
+          attachmentURL:
+            'http://localhost:3000/storages/student/attachments/2938npor93sdoq/test.pdf',
+        },
+        {
+          id: '7ed63d55-799c-4de4-95f2-ca6b0641d7cf',
+          type: 'URL',
+          studentAssignmentID: '83d4f211-148d-4513-9566-e7bad8745f7c',
+          attachmentPath: null,
+          attachmentURL: 'https://example.com/assignments',
+        },
+      ],
+    });
   });
 
   it('Should create user assignment file', () => {
@@ -336,37 +367,8 @@ describe('AssignmentsService', () => {
     ).toBeUndefined();
   });
 
-  it('Should create student assignment files', async () => {
-    (
-      prismaMock.student_assignment_attachments.createMany as jest.Mock
-    ).mockResolvedValue(studentAssignmentAttachmentMocks[0]);
-    expect(
-      await service.createStudentAssignmentFiles(
-        '83d4f211-148d-4513-9566-e7bad8745f7c',
-        files.materials,
-      ),
-    ).toBeUndefined();
-  });
-
-  it('Should create student assignment URL', async () => {
-    const dto: PostStudentAssignmentDto[] = [
-      { url: 'https://google.com/drive/video' },
-    ];
-    (
-      prismaMock.student_assignment_attachments.createMany as jest.Mock
-    ).mockResolvedValue(studentAssignmentAttachmentMocks[1]);
-    expect(
-      await service.createStudentAssignmentTypeURL(
-        '7ed63d55-799c-4de4-95f2-ca6b0641d7cf',
-        dto,
-      ),
-    ).toBeUndefined();
-  });
-
   it('Post student assignment with dto and files', async () => {
-    const dto: PostStudentAssignmentDto[] = [
-      { url: 'https://google.com/drive/video' },
-    ];
+    const dto: string[] = ['https://google.com/drive/video'];
     const expectedResult: PostStudentAssignmentResponse = {
       status: 'success',
       message: 'Assignment successfully posted',
@@ -414,9 +416,7 @@ describe('AssignmentsService', () => {
     }).rejects.toThrow(BadRequestException);
   });
   it('Should throw an BadRequest Exception', async () => {
-    const dto: PostStudentAssignmentDto[] = [
-      { url: 'https://google.com/drive/video' },
-    ];
+    const dto: string[] = ['https://google.com/drive/video'];
     (prismaMock.student_assignments.create as jest.Mock).mockResolvedValue(
       studentAssignmentMocks[0],
     );
@@ -521,29 +521,5 @@ describe('AssignmentsService', () => {
     expect(async () => {
       await service.getListStudentAssignments('Invalid id', 1, 50);
     }).rejects.toThrow(NotFoundException);
-  });
-
-  it('Should not throw an error when deleting student attachments', async () => {
-    (
-      prismaMock.student_assignment_attachments.deleteMany as jest.Mock
-    ).mockResolvedValue(deleteStudentAssignmentMocks);
-
-    expect(async () => {
-      await service.deleteStudentAssignmentAttachments([
-        { id: '35e03d3b-4b09-440b-bf1b-5f6a9c79128c' },
-        { id: '7ed63d55-799c-4de4-95f2-ca6b0641d7cf' },
-      ]);
-    }).resolves;
-  });
-
-  it('Should updating posted student assignment', async () => {
-    (prismaMock.student_assignments.findUnique as jest.Mock).mockResolvedValue(
-      studentAssignmentMocks[0],
-    );
-    (
-      prismaMock.student_assignment_attachments.deleteMany as jest.Mock
-    ).mockResolvedValue(deleteStudentAssignmentMocks);
-
-    const expectedResult: 
   });
 });
