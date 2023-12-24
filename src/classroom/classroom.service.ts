@@ -38,17 +38,14 @@ export class ClassroomService {
           userID: id,
           bannerURL: this.banner,
           code,
+          userJoined: {
+            create: {
+              userID: id,
+              role: Role.TEACHER,
+            },
+          },
         },
       });
-
-      await this.prismaService.classroom_participants.create({
-        data: {
-          classroomID: classroom.id,
-          userID: id,
-          role: Role.TEACHER,
-        },
-      });
-
       return {
         status: 'success',
         message: 'Classroom created!',
