@@ -14,11 +14,7 @@ import {
 } from '@nestjs/common';
 import { ClassroomService } from './classroom.service';
 import { CreateClassroomDto, JoinClassroomDto } from './DTOs';
-import {
-  CreateAssignmentDto,
-  PostStudentAssignmentDto,
-  UpdateAssignmentDto,
-} from '../assignments/DTOs';
+import { CreateAssignmentDto, UpdateAssignmentDto } from '../assignments/DTOs';
 import { User } from '../user/decorators';
 import {
   FileFieldsInterceptor,
@@ -277,13 +273,14 @@ export class ClassroomController {
   async postAssignment(
     @User() userID: string,
     @Param('assignmentID') assignmentID: string,
-    @Body() dto: PostStudentAssignmentDto[],
+    @Body() dto: { URLs: string[] },
     @UploadedFiles() files: { assignments: Express.Multer.File[] },
   ) {
+    const { URLs } = dto;
     return await this.assignmentsService.postStudentAssignment(
       assignmentID,
       userID,
-      dto,
+      URLs,
       files?.assignments,
     );
   }
