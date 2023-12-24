@@ -1,6 +1,6 @@
 import { IsNotEmpty, Length } from 'class-validator';
 
-export class CreateClassroomDto {
+export class ClassroomDto {
   @IsNotEmpty()
   @Length(0, 255)
   name: string;

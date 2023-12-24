@@ -7,7 +7,7 @@ import {
   ClassroomEntity,
   ClassroomParticipantEntity,
 } from './entity';
-import { CreateClassroomDto, JoinClassroomDto } from './DTOs';
+import { ClassroomDto, JoinClassroomDto } from './DTOs';
 import {
   ClassroomCreatedResponse,
   CreateClassroomResponse,
@@ -76,6 +76,16 @@ describe('ClassroomService', () => {
     updatedAt: new Date(),
     userID: '41c3fb5c-220e-4ae5-948c-3cd1ab7e84b6',
   };
+  const updateClassroomMock: ClassroomEntity = {
+    id: 'cf6e1502-01d8-4f51-901a-31b0be6a68a5',
+    code: 'XC9SKG',
+    name: 'Updated name',
+    description: 'Updated classroom',
+    bannerURL: 'http://localhost:3000/public/images/banners/banner.png',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    userID: '41c3fb5c-220e-4ae5-948c-3cd1ab7e84b6',
+  };
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [PrismaModule],
@@ -96,7 +106,7 @@ describe('ClassroomService', () => {
   });
 
   it('Should create a classroom (with banner image)', async () => {
-    const dto: CreateClassroomDto = {
+    const dto: ClassroomDto = {
       name: 'Pemrograman Berorientasi Object',
       description: 'Selamat datang di course PBO!',
     };
@@ -116,7 +126,7 @@ describe('ClassroomService', () => {
     expect(response).toEqual(expectedResult);
   });
   it('Should create a classroom (without banner image)', async () => {
-    const dto: CreateClassroomDto = {
+    const dto: ClassroomDto = {
       name: 'Pemrograman Berorientasi Object',
       description: 'Selamat datang di course PBO!',
     };
@@ -286,5 +296,36 @@ describe('ClassroomService', () => {
         '41c3fb5c-220e-4ae5-948c-3cd1ab7e84b6',
       );
     expect(result).toEqual(classroomParticipantMock);
+  });
+
+  it('Should updating classroom with banner', async () => {
+    (prismaMock.classroom.update as jest.Mock).mockResolvedValue({
+      ...updateClassroomMock,
+      bannerURL: 'http://localhost:3000/public/images/banners/gambr1.jpg',
+    });
+    const dto: ClassroomDto = {
+      name: 'Updated name',
+      description: 'Updated classroom',
+    };
+    const result = await service.updateClassroom(
+      'cf6e1502-01d8-4f51-901a-31b0be6a68a5',
+      dto,
+      'gambar1.jpg',
+    );
+    expect(result).toEqual({
+      status: 'success',
+      message: 'Classroom updated successfully',
+    });
+  });
+
+  it('Should throw an NotFound Exception', async () => {
+    (prismaMock.classroom.findUnique as jest.Mock).mockResolvedValue(undefined);
+    const dto: ClassroomDto = {
+      name: 'Updated name',
+      description: 'Updated classroom',
+    };
+    expect(async () => {
+      await service.updateClassroom('invalid id', dto, 'gambar1.jpg');
+    }).rejects.toThrow(NotFoundException);
   });
 });

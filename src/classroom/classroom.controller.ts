@@ -13,7 +13,7 @@ import {
   Put,
 } from '@nestjs/common';
 import { ClassroomService } from './classroom.service';
-import { CreateClassroomDto, JoinClassroomDto } from './DTOs';
+import { ClassroomDto, JoinClassroomDto } from './DTOs';
 import { CreateAssignmentDto, UpdateAssignmentDto } from '../assignments/DTOs';
 import { User } from '../user/decorators';
 import {
@@ -66,7 +66,7 @@ export class ClassroomController {
   async createClassroom(
     @User() id: string,
     @UploadedFile() banner: Express.Multer.File,
-    @Body() dto: CreateClassroomDto,
+    @Body() dto: ClassroomDto,
   ) {
     return await this.classroomService.createClassroom(
       id,
@@ -74,7 +74,44 @@ export class ClassroomController {
       dto,
     );
   }
-
+  @UseGuards(TeacherGuard)
+  @UseInterceptors(
+    FileInterceptor('banner', {
+      limits: {
+        fileSize: 1024 * 1024 * 5,
+      },
+      fileFilter(_, file: any, callback: any) {
+        if (!file.mimetype.match(/\/(jpg|jpeg|png)$/)) {
+          return callback(
+            new BadRequestException(['Extension must be png, jpg, jpeg']),
+            false,
+          );
+        }
+        callback(null, true);
+      },
+      storage: diskStorage({
+        destination: 'public/images/banners',
+        filename(_, file: any, callback: any) {
+          callback(
+            null,
+            `${getCurrentDate()} ${Date.now()}${extname(file.originalname)}`,
+          );
+        },
+      }),
+    }),
+  )
+  @Put(':id')
+  async updateClassroom(
+    @Param('id') classroomID: string,
+    @Body() dto: ClassroomDto,
+    @UploadedFile() banner: Express.Multer.File,
+  ) {
+    return await this.classroomService.updateClassroom(
+      classroomID,
+      dto,
+      banner.filename,
+    );
+  }
   @Get('created')
   async getCreatedClassroom(
     @User() id: string,

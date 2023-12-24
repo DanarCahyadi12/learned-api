@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateClassroomDto, JoinClassroomDto } from './DTOs';
+import { ClassroomDto, JoinClassroomDto } from './DTOs';
 import {
   ClassroomCreatedResponse,
   CreateClassroomResponse,
@@ -24,7 +24,7 @@ export class ClassroomService {
   async createClassroom(
     id: string,
     banner: string,
-    dto: CreateClassroomDto,
+    dto: ClassroomDto,
   ): Promise<CreateClassroomResponse> {
     try {
       const code: string = this.generateCode();
@@ -277,5 +277,45 @@ export class ClassroomService {
         AND: [{ userID }, { classroomID }],
       },
     });
+  }
+
+  async updateClassroom(
+    classroomID: string,
+    dto: ClassroomDto,
+    banner: string,
+  ) {
+    try {
+      const isExitsClassroom = await this.prismaService.classroom.findUnique({
+        where: {
+          id: classroomID,
+        },
+        select: {
+          id: true,
+        },
+      });
+      if (!isExitsClassroom)
+        throw new NotFoundException(['Classroom not found']);
+      this.banner = banner
+        ? `${process.env.PUBLIC_URL}/images/banners/${banner}`
+        : `${process.env.PUBLIC_URL}/images/banners/default.jpg`;
+      await this.prismaService.classroom.update({
+        where: {
+          id: classroomID,
+        },
+        data: {
+          name: dto.name,
+          description: dto.description,
+          bannerURL: this.banner,
+        },
+      });
+      return {
+        status: 'success',
+        message: 'Classroom updated successfully',
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+      console.error(error);
+      throw new InternalServerErrorException();
+    }
   }
 }
