@@ -218,7 +218,7 @@ model materials {
   updatedAt DateTime @default(now())
   classroom classroom @relation(fields: [classroomID],references: [id], onDelete: Cascade, onUpdate: Cascade)
   classroomID String 
-  material_files material_files[]
+  materialFiles material_files[]
 }
 
 model material_files {
@@ -226,6 +226,7 @@ model material_files {
   materials materials @relation(fields: [materialID], references: [id], onDelete: Cascade, onUpdate: Cascade)
   materialID String
   materialURL String  
+  filename String 
   path String
   createdAt DateTime @default(now())
 }
