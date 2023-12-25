@@ -27,7 +27,7 @@ model users {
   classroomJoined classroom_participants[]
   quizResult quiz_results[]
   quizOnGoing quiz_on_going?
-  assignments student_assignments[]
+  studentyAssignments student_assignments[]
 
 }
 
@@ -37,6 +37,7 @@ model classroom {
   name String @db.VarChar(255)
   description String? @db.LongText
   bannerURL String?
+  bannerPath String?
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
   userID String 
@@ -182,14 +183,13 @@ model student_assignments {
   assignments assignments @relation(fields: [assignmentID], references: [id], onDelete: Cascade, onUpdate: Cascade)
   users users @relation(fields: [userID], references: [id], onDelete: Cascade, onUpdate: Cascade)
   assignmentID String 
-  userID String @unique
+  userID String
   submitedAt DateTime @default(now())
   updatedAt DateTime @default(now())
   overdue Boolean
   assignmentGraded assignment_graded?
   studentAttachments student_assignment_attachments[]
 }
-
 model student_assignment_attachments {
   id String @id @default(uuid())
   type String 
