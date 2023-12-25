@@ -102,6 +102,19 @@ describe('MaterialsService', () => {
       },
     ],
   };
+
+  const deleteMaterialMocks = {
+    count: 1,
+    batch: [
+      {
+        id: '744aa22b-48e9-4ea3-ae3f-814d3fb5747d',
+        title: 'Material 1',
+        description: 'Ini merupakan materi 1',
+        updatedAt: new Date(),
+        classroomID: 'e29ae274-4086-4a59-b072-c08165a2e4ea',
+      },
+    ],
+  };
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [PrismaModule],
@@ -190,7 +203,7 @@ describe('MaterialsService', () => {
       title: 'Updated',
       description: 'This is description',
       updatedAt: currentDate,
-      material_files: [
+      materialFiles: [
         {
           ...materialFiles[0],
           createdAt: currentDate,
@@ -317,6 +330,31 @@ describe('MaterialsService', () => {
     expect(result).toEqual({
       status: 'success',
       message: 'Materials updated successfully',
+    });
+  });
+
+  it('Should delete materials', async () => {
+    (prismaMock.materials.deleteMany as jest.Mock).mockResolvedValue(
+      deleteMaterialMocks,
+    );
+    (prismaMock.materials.findMany as jest.Mock).mockResolvedValue([
+      {
+        materialFiles: [
+          {
+            path: 'C:\\Users\\Danar Cahyadi\\OneDrive\\Desktop\\learned-api\\storages\\teacher\\materials\\7fa537e371c02de21b9dbc3d9e280740\\LAPORAN PKL Danar Cahyadi.pdf',
+          },
+        ],
+      },
+    ]);
+    const result = await service.deleteMaterials([
+      '744aa22b-48e9-4ea3-ae3f-814d3fb5747d',
+    ]);
+    expect(async () => {
+      await service.deleteMaterials(['744aa22b-48e9-4ea3-ae3f-814d3fb5747d']);
+    }).resolves;
+    expect(result).toEqual({
+      status: 'success',
+      message: 'Materials deleted',
     });
   });
 });

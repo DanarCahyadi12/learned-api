@@ -211,6 +211,49 @@ export class MaterialsService {
       throw error;
     }
   }
+
+  async deleteMaterials(dto: string[]) {
+    try {
+      if (!dto || !dto.length)
+        throw new BadRequestException([
+          'Please select the material before deleting',
+        ]);
+      const materials = await this.prismaService.materials.findMany({
+        where: {
+          id: {
+            in: dto,
+          },
+        },
+        select: {
+          materialFiles: {
+            select: {
+              path: true,
+            },
+          },
+        },
+      });
+      materials.forEach(({ materialFiles }) => {
+        materialFiles.forEach(({ path }) => {
+          removeFile(path);
+        });
+      });
+      await this.prismaService.materials.deleteMany({
+        where: {
+          id: {
+            in: dto,
+          },
+        },
+      });
+      return {
+        status: 'success',
+        message: 'Materials deleted',
+      };
+    } catch (error) {
+      if (error instanceof BadRequestException) throw error;
+      console.error(error);
+      throw new InternalServerErrorException();
+    }
+  }
   async getMaterials(
     classroomID: string,
     page: number,

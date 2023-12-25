@@ -314,6 +314,12 @@ export class ClassroomController {
       files?.materials,
     );
   }
+
+  @UseGuards(TeacherGuard)
+  @Delete(':id/teacher/materials')
+  async deleteMaterials(@Body() dto: { materialIDs: string[] }) {
+    return await this.materialsService.deleteMaterials(dto?.materialIDs);
+  }
   @Get('created/:id/assignment/:assignmentID')
   async getDetailAssignment(@Param('assignmentID') assignmentID: string) {
     return await this.assignmentsService.getDetailAssignment(assignmentID);
