@@ -1,12 +1,16 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateMaterialDto } from './DTOs';
+import { CreateMaterialDto, UpdateMaterialDto } from './DTOs';
 import { CreateMaterialResponse, GetMaterialResponse } from './interfaces';
 import { join } from 'path';
 import * as fs from 'fs';
 import * as crypto from 'crypto';
 import { MaterialsEntity } from './entity';
-import { getNextUrl, getPrevUrl } from '../utils';
+import { getNextUrl, getPrevUrl, removeFile } from '../utils';
 
 @Injectable()
 export class MaterialsService {
@@ -60,6 +64,7 @@ export class MaterialsService {
         const materialURL: string = `${process.env.BASE_URL}/storages/teacher/materials/${randomFolderName}/${material.originalname}`;
         this.moveMaterialFiles(material.buffer, path, material.originalname);
         materialFiles.push({
+          filename: material.originalname,
           materialURL,
           path: `${path}\\${material.originalname}`,
         });
@@ -69,7 +74,7 @@ export class MaterialsService {
           data: {
             ...dto,
             classroomID,
-            material_files: {
+            materialFiles: {
               createMany: {
                 data: materialFiles,
               },
@@ -91,6 +96,121 @@ export class MaterialsService {
     });
   }
 
+  async updateMaterials(
+    materialID: string,
+    dto: UpdateMaterialDto,
+    files: Express.Multer.File[],
+  ) {
+    try {
+      if (files) {
+        await this.updateMaterialsAndAddNewFiles(materialID, dto, files);
+      } else {
+        await this.prismaService.materials.update({
+          where: {
+            id: materialID,
+          },
+          data: {
+            title: dto.title,
+            description: dto.description,
+            updatedAt: new Date(),
+          },
+        });
+      }
+      if (dto?.deleteFiles)
+        await this.deleteMaterialFiles(dto.deleteFiles, materialID);
+
+      return {
+        status: 'success',
+        message: 'Materials updated successfully',
+      };
+    } catch (error) {
+      if (error instanceof BadRequestException) throw error;
+      console.error(error);
+      throw new InternalServerErrorException();
+    }
+  }
+  async updateMaterialsAndAddNewFiles(
+    materialID: string,
+    dto: UpdateMaterialDto,
+    files: Express.Multer.File[],
+  ): Promise<MaterialsEntity> {
+    try {
+      const materialFiles = [];
+      files.forEach((file) => {
+        const randomFolderName: string = crypto.randomBytes(16).toString('hex');
+        const path: string = join(
+          __dirname,
+          '..',
+          '..',
+          'storages',
+          'teacher',
+          'materials',
+          randomFolderName,
+        );
+        const materialURL: string = `${process.env.BASE_URL}/storages/teacher/materials/${randomFolderName}/${file.originalname}`;
+        this.moveMaterialFiles(file.buffer, path, file.originalname);
+        materialFiles.push({
+          filename: file.originalname,
+          materialURL,
+          path: `${path}\\${file.originalname}`,
+        });
+      });
+      return await this.prismaService.materials.update({
+        where: {
+          id: materialID,
+        },
+        data: {
+          title: dto.title,
+          description: dto.description,
+          updatedAt: new Date(),
+          materialFiles: {
+            createMany: {
+              data: materialFiles,
+            },
+          },
+        },
+        include: {
+          materialFiles: true,
+        },
+      });
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async deleteMaterialFiles(IDs: string[], materialID: string) {
+    try {
+      const paths = await this.prismaService.material_files.findMany({
+        where: {
+          id: {
+            in: IDs,
+          },
+        },
+        select: {
+          path: true,
+        },
+      });
+      const totalFiles: number = await this.prismaService.material_files.count({
+        where: {
+          materialID: materialID,
+        },
+      });
+      if (totalFiles === paths.length)
+        throw new BadRequestException(['Material files is required']);
+      paths.forEach((objectPath) => {
+        removeFile(objectPath.path);
+      });
+      return await this.prismaService.material_files.deleteMany({
+        where: {
+          id: {
+            in: IDs,
+          },
+        },
+      });
+    } catch (error) {
+      throw error;
+    }
+  }
   async getMaterials(
     classroomID: string,
     page: number,
@@ -103,7 +223,7 @@ export class MaterialsService {
             classroomID,
           },
           include: {
-            material_files: true,
+            materialFiles: true,
           },
         });
       const totalMaterial: number = await this.prismaService.materials.count({

@@ -6,5 +6,5 @@ export interface MaterialsEntity {
   description: string;
   classroomID: string;
   updatedAt: Date;
-  files?: MaterialFilesEntity[];
+  materialFiles?: MaterialFilesEntity[];
 }

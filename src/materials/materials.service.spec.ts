@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { MaterialsService } from './materials.service';
 import { MaterialFilesEntity, MaterialsEntity } from './entity';
 import { PrismaMock, prismaMock } from '../prisma/prisma.mock';
-import { CreateMaterialDto } from './DTOs';
+import { CreateMaterialDto, UpdateMaterialDto } from './DTOs';
 import { CreateMaterialResponse, GetMaterialResponse } from './interfaces';
 import { PrismaModule } from '../prisma/prisma.module';
 
@@ -19,8 +19,8 @@ describe('MaterialsService', () => {
         encoding: '7bit',
         mimetype: 'application/pdf',
         size: 1024 * 1024 * 5,
-        originalname: 'materi PBO.pdf',
-        buffer: Buffer.from('Ini merupakan modul PBO'),
+        originalname: 'LAPORAN PKL Danar Cahyadi.pdf',
+        buffer: Buffer.from('Ini merupakan laporan danar cahyadi'),
       },
       {
         filename: null,
@@ -63,6 +63,7 @@ describe('MaterialsService', () => {
     {
       id: '337c95f5-3173-4ebb-b077-ac7c4dad0888',
       createdAt: new Date(),
+      filename: 'LAPORAN PKL Danar Cahyadi.pdf',
       path: 'C:\\Users\\Danar Cahyadi\\OneDrive\\Desktop\\learned-api\\storages\\teacher\\materials\\7fa537e371c02de21b9dbc3d9e280740\\LAPORAN PKL Danar Cahyadi.pdf',
       materialURL:
         'http://localhost:3000/storages/teacher/materials/7fa537e371c02de21b9dbc3d9e280740/LAPORAN PKL Danar Cahyadi.pdf',
@@ -75,6 +76,7 @@ describe('MaterialsService', () => {
       materialURL:
         'http://localhost:3000/storages/teacher/materials/7fa537e371c02de21b9dbc3d9e280740/LAPORAN PKL Danar Cahyadi.pdf',
       materialID: '5564f6c9-8281-43a9-b747-c8a7076cdc6a',
+      filename: 'LAPORAN PKL Danar Cahyadi.pdf',
     },
     {
       id: '117f8750-9d04-4794-9460-68f147a2c86c',
@@ -83,8 +85,23 @@ describe('MaterialsService', () => {
       materialURL:
         'http://localhost:3000/storages/teacher/materials/7fa537e371c02de21b9dbc3d9e280740/LAPORAN PKL Danar Cahyadi.pdf',
       materialID: 'ae22152d-83c9-4da9-bb98-1243c9335b70',
+      filename: 'LAPORAN PKL Danar Cahyadi.pdf',
     },
   ];
+
+  const deleteMaterialFilesReturnedMock = {
+    count: 1,
+    batch: [
+      {
+        id: '337c95f5-3173-4ebb-b077-ac7c4dad0888',
+        createdAt: new Date(),
+        path: 'C:\\Users\\Danar Cahyadi\\OneDrive\\Desktop\\learned-api\\storages\\teacher\\materials\\7fa537e371c02de21b9dbc3d9e280740\\LAPORAN PKL Danar Cahyadi.pdf',
+        materialURL:
+          'http://localhost:3000/storages/teacher/materials/7fa537e371c02de21b9dbc3d9e280740/LAPORAN PKL Danar Cahyadi.pdf',
+        materialID: '744aa22b-48e9-4ea3-ae3f-814d3fb5747d',
+      },
+    ],
+  };
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [PrismaModule],
@@ -160,5 +177,146 @@ describe('MaterialsService', () => {
       50,
     );
     expect(result).toEqual(resultExpected);
+  });
+
+  it('Should  successfully update material and create new files', async () => {
+    const currentDate = new Date();
+    const dto: UpdateMaterialDto = {
+      title: 'Updated',
+      description: 'This is description',
+    };
+    (prismaMock.materials.update as jest.Mock).mockResolvedValue({
+      ...materialsMock[0],
+      title: 'Updated',
+      description: 'This is description',
+      updatedAt: currentDate,
+      material_files: [
+        {
+          ...materialFiles[0],
+          createdAt: currentDate,
+        },
+      ],
+    });
+    const expectedResult: MaterialsEntity = {
+      id: '744aa22b-48e9-4ea3-ae3f-814d3fb5747d',
+      title: 'Updated',
+      description: 'This is description',
+      updatedAt: currentDate,
+      classroomID: 'e29ae274-4086-4a59-b072-c08165a2e4ea',
+      materialFiles: [
+        {
+          id: '337c95f5-3173-4ebb-b077-ac7c4dad0888',
+          createdAt: currentDate,
+          path: 'C:\\Users\\Danar Cahyadi\\OneDrive\\Desktop\\learned-api\\storages\\teacher\\materials\\7fa537e371c02de21b9dbc3d9e280740\\LAPORAN PKL Danar Cahyadi.pdf',
+          materialURL:
+            'http://localhost:3000/storages/teacher/materials/7fa537e371c02de21b9dbc3d9e280740/LAPORAN PKL Danar Cahyadi.pdf',
+          materialID: '744aa22b-48e9-4ea3-ae3f-814d3fb5747d',
+          filename: 'LAPORAN PKL Danar Cahyadi.pdf',
+        },
+      ],
+    };
+    const result: MaterialsEntity = await service.updateMaterialsAndAddNewFiles(
+      '744aa22b-48e9-4ea3-ae3f-814d3fb5747d',
+      dto,
+      [files.materials[0]],
+    );
+    expect(result).toEqual(expectedResult);
+  });
+
+  it('Should delete material files', async () => {
+    (prismaMock.material_files.deleteMany as jest.Mock).mockResolvedValue(
+      deleteMaterialFilesReturnedMock,
+    );
+    (prismaMock.material_files.findMany as jest.Mock).mockResolvedValue([
+      {
+        path: 'C:\\Users\\Danar Cahyadi\\OneDrive\\Desktop\\learned-api\\storages\\teacher\\materials\\7fa537e371c02de21b9dbc3d9e280740\\LAPORAN PKL Danar Cahyadi.pdf',
+      },
+    ]);
+    (prismaMock.material_files.count as jest.Mock).mockResolvedValue(2);
+    const result = await service.deleteMaterialFiles(
+      ['337c95f5-3173-4ebb-b077-ac7c4dad0888'],
+      '744aa22b-48e9-4ea3-ae3f-814d3fb5747d',
+    );
+    expect(result).toEqual(deleteMaterialFilesReturnedMock);
+  });
+
+  it('Should updated materials with add new material files and delete material files', async () => {
+    const currentDate = new Date();
+    const dto: UpdateMaterialDto = {
+      title: 'Updated',
+      description: 'This is description',
+      deleteFiles: [
+        '337c95f5-3173-4ebb-b077-ac7c4dad0888',
+        'c4865002-d8e7-4527-8122-c8fceec8838b',
+      ],
+    };
+    (prismaMock.material_files.count as jest.Mock).mockResolvedValue(2);
+    (prismaMock.materials.update as jest.Mock).mockResolvedValue({
+      ...materialsMock[0],
+      title: 'Updated',
+      description: 'This is description',
+      updatedAt: currentDate,
+      material_files: [
+        {
+          ...materialFiles[0],
+          createdAt: currentDate,
+        },
+      ],
+    });
+    (prismaMock.material_files.findMany as jest.Mock).mockResolvedValue([
+      {
+        path: 'C:\\Users\\Danar Cahyadi\\OneDrive\\Desktop\\learned-api\\storages\\teacher\\materials\\7fa537e371c02de21b9dbc3d9e280740\\LAPORAN PKL Danar Cahyadi.pdf',
+      },
+    ]);
+    (prismaMock.material_files.deleteMany as jest.Mock).mockResolvedValue(
+      deleteMaterialFilesReturnedMock,
+    );
+
+    const result = await service.updateMaterials(
+      '744aa22b-48e9-4ea3-ae3f-814d3fb5747d',
+      dto,
+      [files.materials[0]],
+    );
+    expect(async () => {
+      await service.updateMaterials(
+        '744aa22b-48e9-4ea3-ae3f-814d3fb5747d',
+        dto,
+        [files.materials[0]],
+      );
+    }).resolves;
+    expect(result).toEqual({
+      status: 'success',
+      message: 'Materials updated successfully',
+    });
+  });
+
+  it('Should updating materials without adding new material files , deleting material files', async () => {
+    const currentDate = new Date();
+    const dto: UpdateMaterialDto = {
+      title: 'Updated',
+      description: 'This is description',
+    };
+    (prismaMock.materials.update as jest.Mock).mockResolvedValue({
+      ...materialsMock[0],
+      title: 'Updated',
+      description: 'This is description',
+      updatedAt: currentDate,
+    });
+    const result = await service.updateMaterials(
+      '744aa22b-48e9-4ea3-ae3f-814d3fb5747d',
+      dto,
+      undefined,
+    );
+    expect(async () => {
+      await service.updateMaterials(
+        '744aa22b-48e9-4ea3-ae3f-814d3fb5747d',
+        dto,
+        undefined,
+      );
+    }).resolves;
+    expect(result).toEqual({
+      status: 'success',
+      message: 'Materials updated successfully',
+    });
   });
 });

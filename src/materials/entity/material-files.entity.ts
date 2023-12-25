@@ -4,4 +4,5 @@ export interface MaterialFilesEntity {
   materialURL: string;
   createdAt: Date;
   path: string;
+  filename: string;
 }
