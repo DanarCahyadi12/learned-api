@@ -41,6 +41,7 @@ export const PrismaMock = jest.fn(() => {
       },
       materials: {
         findMany: jest.fn(),
+        deleteMany: jest.fn(),
         update: jest.fn(),
         findUnique: jest.fn(),
         updateMany: jest.fn(),
