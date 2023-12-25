@@ -252,7 +252,7 @@ export class ClassroomController {
       },
     ),
   )
-  @Post('created/:id/materials')
+  @Post(':id/teacher/materials')
   async createMaterial(
     @Param('id') classroomID: string,
     @Body() dto: CreateMaterialDto,

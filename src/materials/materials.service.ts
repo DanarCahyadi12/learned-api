@@ -18,16 +18,11 @@ export class MaterialsService {
     materials: Express.Multer.File[],
   ): Promise<CreateMaterialResponse> {
     try {
-      const materialID: string = (
-        await this.prismaService.materials.create({
-          data: {
-            ...dto,
-            classroomID,
-          },
-        })
-      ).id;
-
-      if (materials) await this.createMaterialFiles(materialID, materials);
+      const materialID: string = await this.storeMaterials(
+        dto,
+        classroomID,
+        materials,
+      );
       return {
         status: 'success',
         message: 'Create materials successfully',
@@ -44,10 +39,11 @@ export class MaterialsService {
     }
   }
 
-  async createMaterialFiles(
-    materialID: string,
+  async storeMaterials(
+    dto: CreateMaterialDto,
+    classroomID: string,
     materials: Express.Multer.File[],
-  ): Promise<void> {
+  ): Promise<string> {
     const materialFiles = [];
     try {
       materials.forEach((material) => {
@@ -64,14 +60,23 @@ export class MaterialsService {
         const materialURL: string = `${process.env.BASE_URL}/storages/teacher/materials/${randomFolderName}/${material.originalname}`;
         this.moveMaterialFiles(material.buffer, path, material.originalname);
         materialFiles.push({
-          materialID,
           materialURL,
           path: `${path}\\${material.originalname}`,
         });
       });
-      await this.prismaService.material_files.createMany({
-        data: materialFiles,
-      });
+      return (
+        await this.prismaService.materials.create({
+          data: {
+            ...dto,
+            classroomID,
+            material_files: {
+              createMany: {
+                data: materialFiles,
+              },
+            },
+          },
+        })
+      ).id;
     } catch (error) {
       throw error;
     }

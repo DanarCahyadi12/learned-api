@@ -8,6 +8,34 @@ import { PrismaModule } from '../prisma/prisma.module';
 
 describe('MaterialsService', () => {
   let service: MaterialsService;
+  const files = {
+    materials: [
+      {
+        filename: null,
+        stream: null,
+        destination: null,
+        path: null,
+        fieldname: 'materials',
+        encoding: '7bit',
+        mimetype: 'application/pdf',
+        size: 1024 * 1024 * 5,
+        originalname: 'materi PBO.pdf',
+        buffer: Buffer.from('Ini merupakan modul PBO'),
+      },
+      {
+        filename: null,
+        stream: null,
+        destination: null,
+        path: null,
+        fieldname: 'materials',
+        encoding: '7bit',
+        mimetype: 'application/pdf',
+        size: 1024 * 1024 * 5,
+        originalname: 'materi 2 PBO.pdf',
+        buffer: Buffer.from('Ini merupakan modul PBO 2'),
+      },
+    ],
+  };
   const materialsMock: MaterialsEntity[] = [
     {
       id: '744aa22b-48e9-4ea3-ae3f-814d3fb5747d',
@@ -94,34 +122,6 @@ describe('MaterialsService', () => {
       },
     };
 
-    const files = {
-      materials: [
-        {
-          filename: null,
-          stream: null,
-          destination: null,
-          path: null,
-          fieldname: 'materials',
-          encoding: '7bit',
-          mimetype: 'application/pdf',
-          size: 1024 * 1024 * 5,
-          originalname: 'materi PBO.pdf',
-          buffer: Buffer.from('Ini merupakan modul PBO'),
-        },
-        {
-          filename: null,
-          stream: null,
-          destination: null,
-          path: null,
-          fieldname: 'materials',
-          encoding: '7bit',
-          mimetype: 'application/pdf',
-          size: 1024 * 1024 * 5,
-          originalname: 'materi 2 PBO.pdf',
-          buffer: Buffer.from('Ini merupakan modul PBO 2'),
-        },
-      ],
-    };
     const result: CreateMaterialResponse = await service.createMaterials(
       'e29ae274-4086-4a59-b072-c08165a2e4ea',
       dto,
