@@ -26,7 +26,7 @@ import { getCurrentDate } from '../utils';
 import { extname } from 'path';
 import { UseGuards } from '@nestjs/common';
 import { ClassroomGuard, StudentGuard, TeacherGuard } from './guards';
-import { CreateMaterialDto } from '../materials/DTOs';
+import { CreateMaterialDto, UpdateMaterialDto } from '../materials/DTOs';
 import { AssignmentsService } from '../assignments/assignments.service';
 import { MaterialsService } from '../materials/materials.service';
 
@@ -273,6 +273,46 @@ export class ClassroomController {
     @Query('take', ParseIntPipe) take: number = 50,
   ) {
     return await this.materialsService.getMaterials(classroomID, page, take);
+  }
+
+  @UseGuards(TeacherGuard)
+  @UseInterceptors(
+    FileFieldsInterceptor(
+      [
+        {
+          name: 'materials',
+        },
+      ],
+      {
+        limits: {
+          fileSize: 1024 * 1024 * 10,
+        },
+        fileFilter(_, file: any, callback: any) {
+          if (!file.mimetype.match(/\/(jpg|jpeg|png|pdf|docx|xlxs|ppt)$/)) {
+            return callback(
+              new BadRequestException([
+                'Extension must be .png, .jpg, .jpeg, .docx, .xlsx, .ppt',
+              ]),
+              false,
+            );
+          }
+          callback(null, true);
+        },
+      },
+    ),
+  )
+  @Put(':id/materials/:materialID')
+  async updateMaterials(
+    @Param('materialID') materialID: string,
+    @Body()
+    dto: UpdateMaterialDto,
+    @UploadedFiles() files: { materials: Express.Multer.File[] },
+  ) {
+    return await this.materialsService.updateMaterials(
+      materialID,
+      dto,
+      files?.materials,
+    );
   }
   @Get('created/:id/assignment/:assignmentID')
   async getDetailAssignment(@Param('assignmentID') assignmentID: string) {
