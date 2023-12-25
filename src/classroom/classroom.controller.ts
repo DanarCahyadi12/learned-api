@@ -11,6 +11,7 @@ import {
   Param,
   UploadedFiles,
   Put,
+  Delete,
 } from '@nestjs/common';
 import { ClassroomService } from './classroom.service';
 import { ClassroomDto, JoinClassroomDto } from './DTOs';
@@ -111,6 +112,12 @@ export class ClassroomController {
       dto,
       banner.filename,
     );
+  }
+
+  @UseGuards(TeacherGuard)
+  @Delete(':id')
+  async deleteClassroom(@Param('id') classroomID: string) {
+    return await this.classroomService.deleteClassroom(classroomID);
   }
   @Get('created')
   async getCreatedClassroom(

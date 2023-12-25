@@ -4,6 +4,7 @@ export type ClassroomEntity = {
   name: string;
   description: string | null;
   bannerURL: string;
+  bannerPath: string | null;
   createdAt: Date;
   updatedAt: Date;
   userID: string;

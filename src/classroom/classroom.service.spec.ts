@@ -71,7 +71,10 @@ describe('ClassroomService', () => {
     code: 'XC9SKG',
     name: 'Pemrograman Berorientasi Objek',
     description: 'Selamat datang di course PBO',
-    bannerURL: 'http://localhost:3000/public/images/banners/banner.png',
+    bannerURL:
+      'http://localhost:3000/public/images/banners/24-12-2023 1703403832515.jpg',
+    bannerPath:
+      'C:\\Users\\Danar Cahyadi\\OneDrive\\Desktop\\learned-api\\public\\images\\banners\\24-12-2023 1703403832515.jpg',
     createdAt: new Date(),
     updatedAt: new Date(),
     userID: '41c3fb5c-220e-4ae5-948c-3cd1ab7e84b6',
@@ -82,6 +85,8 @@ describe('ClassroomService', () => {
     name: 'Updated name',
     description: 'Updated classroom',
     bannerURL: 'http://localhost:3000/public/images/banners/banner.png',
+    bannerPath:
+      'C:\\Users\\Danar Cahyadi\\OneDrive\\Desktop\\learned-api\\public\\images\\banners\\banner.png',
     createdAt: new Date(),
     updatedAt: new Date(),
     userID: '41c3fb5c-220e-4ae5-948c-3cd1ab7e84b6',
@@ -129,17 +134,6 @@ describe('ClassroomService', () => {
     const dto: ClassroomDto = {
       name: 'Pemrograman Berorientasi Object',
       description: 'Selamat datang di course PBO!',
-    };
-
-    const classroomMock: ClassroomEntity = {
-      id: 'cf6e1502-01d8-4f51-901a-31b0be6a68a5',
-      code: 'XC9SKG',
-      name: 'Pemrograman Berorientasi Objek',
-      description: 'Selamat datang di course PBO',
-      bannerURL: 'http://localhost:3000/public/images/banners/default.jpg',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      userID: '41c3fb5c-220e-4ae5-948c-3cd1ab7e84b6',
     };
     const expectedResult: CreateClassroomResponse = {
       status: 'success',
@@ -327,5 +321,24 @@ describe('ClassroomService', () => {
     expect(async () => {
       await service.updateClassroom('invalid id', dto, 'gambar1.jpg');
     }).rejects.toThrow(NotFoundException);
+  });
+
+  it('Should delete an classroom', async () => {
+    (prismaMock.classroom.findUnique as jest.Mock).mockResolvedValue(
+      classroomMock,
+    );
+    (prismaMock.classroom.delete as jest.Mock).mockResolvedValue({
+      count: 1,
+      where: {
+        id: classroomMock.id,
+      },
+      success: true,
+    });
+
+    const result = await service.deleteClassroom(classroomMock.id);
+    expect(result).toEqual({
+      status: 'success',
+      message: 'Classroom deleted successfully',
+    });
   });
 });

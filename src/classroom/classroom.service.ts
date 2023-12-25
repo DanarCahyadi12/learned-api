@@ -14,7 +14,8 @@ import {
 } from './interfaces';
 import { ClassroomCreatedEntity, ClassroomParticipantEntity } from './entity';
 import { Role } from './enums';
-import { getNextUrl, getPrevUrl } from '../utils';
+import { getNextUrl, getPrevUrl, removeFile } from '../utils';
+import { join } from 'path';
 
 @Injectable()
 export class ClassroomService {
@@ -31,6 +32,9 @@ export class ClassroomService {
       this.banner = banner
         ? `${process.env.PUBLIC_URL}/images/banners/${banner}`
         : `${process.env.PUBLIC_URL}/images/banners/default.jpg`;
+      const bannerDir: string = banner
+        ? join(__dirname, '..', '..', 'public', 'images', 'banners', banner)
+        : undefined;
       const classroom = await this.prismaService.classroom.create({
         data: {
           name: dto.name,
@@ -38,6 +42,7 @@ export class ClassroomService {
           userID: id,
           bannerURL: this.banner,
           code,
+          bannerPath: bannerDir,
           userJoined: {
             create: {
               userID: id,
@@ -54,11 +59,8 @@ export class ClassroomService {
         },
       };
     } catch (error) {
-      console.log(error);
-      throw new InternalServerErrorException(
-        ['Error while creating classroom'],
-        { cause: error },
-      );
+      console.error(error);
+      throw new InternalServerErrorException();
     }
   }
 
@@ -308,6 +310,33 @@ export class ClassroomService {
       return {
         status: 'success',
         message: 'Classroom updated successfully',
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+      console.error(error);
+      throw new InternalServerErrorException();
+    }
+  }
+
+  async deleteClassroom(classroomID: string) {
+    try {
+      const classroom = await this.prismaService.classroom.findFirst({
+        where: {
+          id: classroomID,
+        },
+        select: {
+          bannerPath: true,
+        },
+      });
+      await this.prismaService.classroom.delete({
+        where: {
+          id: classroomID,
+        },
+      });
+      removeFile(classroom.bannerPath);
+      return {
+        status: 'success',
+        message: 'Classroom deleted successfully',
       };
     } catch (error) {
       if (error instanceof NotFoundException) throw error;
